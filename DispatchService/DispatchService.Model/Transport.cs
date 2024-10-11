@@ -6,16 +6,6 @@
 public class Transport
 {
     /// <summary>
-    /// Виды транспорта
-    /// </summary>
-    public enum VehicleType
-    {
-        Bus,
-        Tram,
-        Trolleybus
-    }
-
-    /// <summary>
     /// Идентификатор транспорта
     /// </summary>
     public required int Id { get; set; }
@@ -49,4 +39,14 @@ public class Transport
     /// Год выпуска транспорта
     /// </summary>
     public int? YearOfManufacture { get; set; }
+}
+
+/// <summary>
+/// Виды транспорта
+/// </summary>
+public enum VehicleType
+{
+    Bus,
+    Tram,
+    Trolleybus
 }

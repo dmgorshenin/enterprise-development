@@ -90,7 +90,7 @@ public class DispatchFixture
             {
                 Id = 1,
                 LicensePlate = "A123BC",
-                Type = Transport.VehicleType.Bus,
+                Type = VehicleType.Bus,
                 ModelName = "Volvo 7900",
                 IsLowFloor = true,
                 MaxCapacity = 100,
@@ -100,7 +100,7 @@ public class DispatchFixture
             {
                 Id = 2,
                 LicensePlate = "B456DE",
-                Type = Transport.VehicleType.Trolleybus,
+                Type = VehicleType.Trolleybus,
                 ModelName = "Trolza",
                 IsLowFloor = false,
                 MaxCapacity = 80,
@@ -110,7 +110,7 @@ public class DispatchFixture
             {
                 Id = 3,
                 LicensePlate = "C789FG",
-                Type = Transport.VehicleType.Tram,
+                Type = VehicleType.Tram,
                 ModelName = "Stadler",
                 IsLowFloor = true,
                 MaxCapacity = 150,
@@ -120,7 +120,7 @@ public class DispatchFixture
             {
                 Id = 4,
                 LicensePlate = "D123HI",
-                Type = Transport.VehicleType.Bus,
+                Type = VehicleType.Bus,
                 ModelName = "Mercedes Citaro",
                 IsLowFloor = true,
                 MaxCapacity = 120,
@@ -130,7 +130,7 @@ public class DispatchFixture
             {
                 Id = 5,
                 LicensePlate = "E456JK",
-                Type = Transport.VehicleType.Trolleybus,
+                Type = VehicleType.Trolleybus,
                 ModelName = "BKM 321",
                 IsLowFloor = false,
                 MaxCapacity = 90,
@@ -140,7 +140,7 @@ public class DispatchFixture
             {
                 Id = 6,
                 LicensePlate = "F789LM",
-                Type = Transport.VehicleType.Tram,
+                Type = VehicleType.Tram,
                 ModelName = "CAF Urbos",
                 IsLowFloor = true,
                 MaxCapacity = 160,
@@ -150,7 +150,7 @@ public class DispatchFixture
             {
                 Id = 7,
                 LicensePlate = "G123NO",
-                Type = Transport.VehicleType.Bus,
+                Type = VehicleType.Bus,
                 ModelName = "MAN Lion's City",
                 IsLowFloor = true,
                 MaxCapacity = 110,
@@ -160,7 +160,7 @@ public class DispatchFixture
             {
                 Id = 8,
                 LicensePlate = "H456PQ",
-                Type = Transport.VehicleType.Trolleybus,
+                Type = VehicleType.Trolleybus,
                 ModelName = "ZIU-9",
                 IsLowFloor = false,
                 MaxCapacity = 70,
