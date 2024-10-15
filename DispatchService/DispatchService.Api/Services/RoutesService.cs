@@ -1,52 +1,80 @@
-﻿namespace DispatchService.Api.Services
+﻿using DispatchService.Api.DTO;
+using Route = DispatchService.Model.Route;
+namespace DispatchService.Api.Services;
+
+/// <summary>
+/// Сервис для управления маршрутами.
+/// </summary>
+public class RoutesService(DriversService driversService, TransportsService transportsService) : IEntityService<Route, RouteCreateDTO, RouteDTO>
 {
-    public class RoutesService
+    private readonly List<Route> _routes = [];
+    private int _id = 1;
+
+    /// <summary>
+    /// Получает список всех маршрутов.
+    /// </summary>
+    /// <returns>Список объектов <see cref="Route"/>.</returns>
+    public List<Route> GetAll() => _routes;
+
+    /// <summary>
+    /// Получает маршрут по его идентификатору.
+    /// </summary>
+    /// <param name="id">Идентификатор маршрута.</param>
+    /// <returns>Объект <see cref="Route"/> или null, если маршрут не найден.</returns>
+    public Route? GetById(int id) => _routes.FirstOrDefault(d => d.Id == id);
+
+    /// <summary>
+    /// Добавляет новый маршрут.
+    /// </summary>
+    /// <param name="newRoute">Данные для создания нового маршрута.</param>
+    /// <returns>Созданный маршрут или null, если не удалось найти водителя или транспортное средство.</returns>
+    public Route? Add(RouteCreateDTO newRoute)
     {
-        private List<Model.Route> _routes = [];
-        private int Id = 1;
+        var assignedDriver = driversService.GetById(newRoute.AssignedDriverId);
+        var assignedTransport = transportsService.GetById(newRoute.AssignedTransportId);
 
-        public List<Model.Route> GetAll()
-        {
-            return _routes;
-        }
+        if (assignedDriver == null) return null;
+        if (assignedTransport == null) return null;
 
-        public Model.Route GetById(int id)
+        var route = new Route
         {
-            return _routes.First(d => d.Id == id);
-        }
+            Id = _id++,
+            RouteNumber = newRoute.RouteNumber,
+            AssignedDriver = assignedDriver,
+            AssignedTransport = assignedTransport,
+            StartTime = newRoute.StartTime,
+            EndTime = newRoute.EndTime
+        };
+        _routes.Add(route);
+        return _routes.FirstOrDefault(d => d.Id == route.Id);
+    }
 
-        public Model.Route Create(Model.Route driver)
-        {
-            driver.Id = Id++;
-            _routes.Add(driver);
-            return _routes.First(d => d.Id == driver.Id);
-        }
+    /// <summary>
+    /// Обновляет данные существующего маршрута.
+    /// </summary>
+    /// <param name="updateRoute">Объект с обновленными данными маршрута.</param>
+    /// <returns>Значение true, если обновление прошло успешно; иначе false.</returns>
+    public bool Update(RouteDTO updateRoute)
+    {
+        var route = GetById(updateRoute.Id);
+        if (route == null) return false;
+        route.RouteNumber = updateRoute.RouteNumber;
+        route.AssignedDriver = updateRoute.AssignedDriver;
+        route.AssignedTransport = updateRoute.AssignedTransport;
+        route.StartTime = updateRoute.StartTime;
+        route.EndTime = updateRoute.EndTime;
+        return true;
+    }
 
-        public bool Update(Model.Route driver)
-        {
-            var temp_driver = _routes.Find(d => d.Id == driver.Id);
-            if (temp_driver == null) throw new Exception("Route not found");
-            else
-            {
-                temp_driver.Id = driver.Id;
-                temp_driver.RouteNumber = driver.RouteNumber;
-                temp_driver.AssignedDriver = driver.AssignedDriver;
-                temp_driver.AssignedTransport = driver.AssignedTransport;
-                temp_driver.StartTime = driver.StartTime;
-                temp_driver.EndTime = driver.EndTime;
-                return true;
-            }
-        }
-
-        public bool Delete(int id)
-        {
-            var temp_driver = _routes.Find(d => d.Id == id);
-            if (temp_driver == null) throw new Exception("Route not found");
-            else
-            {
-                bool res = _routes.Remove(temp_driver);
-                return res;
-            }
-        }
+    /// <summary>
+    /// Удаляет маршрут по его идентификатору.
+    /// </summary>
+    /// <param name="id">Идентификатор маршрута.</param>
+    /// <returns>Значение true, если удаление прошло успешно; иначе false.</returns>
+    public bool Delete(int id)
+    {
+        var route = GetById(id);
+        if (route == null) return false;
+        return _routes.Remove(route);
     }
 }

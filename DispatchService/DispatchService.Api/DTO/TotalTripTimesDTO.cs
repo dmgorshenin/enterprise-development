@@ -1,8 +1,7 @@
-﻿namespace DispatchService.Api.DTO
+﻿namespace DispatchService.Api.DTO;
+
+public class TotalTripTimesDTO
 {
-    public class TotalTripTimesDTO
-    {
-        public string? ModelName { get; set; }
-        public TimeSpan TotalTripTime { get; set; }
-    }
+    public string? ModelName { get; set; }
+    public TimeSpan TotalTripTime { get; set; }
 }
