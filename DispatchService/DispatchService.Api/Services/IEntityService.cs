@@ -8,7 +8,7 @@ public interface IEntityService<T, CreateDTO, DTO>
     /// <summary>
     /// Получение всех сущностей
     /// </summary>
-    public readonly List<T> GetAll();
+    public List<T> GetAll();
 
     /// <summary>
     /// Получение сущности при помощи id
