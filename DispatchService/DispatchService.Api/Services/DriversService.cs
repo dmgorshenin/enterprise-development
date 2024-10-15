@@ -8,7 +8,7 @@ namespace DispatchService.Api.Services;
 /// </summary>
 public class DriversService : IEntityService<Driver, DriverCreateDTO, DriverDTO>
 {
-    private readonly List<Driver> _drivers = [];
+    private List<Driver> _drivers = [];
     private int _id = 1;
 
     /// <summary>

@@ -7,7 +7,7 @@ namespace DispatchService.Api.Services;
 /// </summary>
 public class RoutesService(DriversService driversService, TransportsService transportsService) : IEntityService<Route, RouteCreateDTO, RouteDTO>
 {
-    private readonly List<Route> _routes = [];
+    private List<Route> _routes = [];
     private int _id = 1;
 
     /// <summary>

@@ -8,7 +8,7 @@ namespace DispatchService.Api.Services;
 /// </summary>
 public class TransportsService : IEntityService<Transport, TransportCreateDTO, TransportDTO>
 {
-    private readonly List<Transport> _transports = [];
+    private List<Transport> _transports = [];
     private int _id = 1;
 
     /// <summary>
