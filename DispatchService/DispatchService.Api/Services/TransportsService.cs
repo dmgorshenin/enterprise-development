@@ -6,9 +6,9 @@ namespace DispatchService.Api.Services;
 /// <summary>
 /// Сервис для управления транспортными средствами.
 /// </summary>
-public class TransportsService : IEntityService<Transport, TransportCreateDTO, TransportDTO>
+public class TransportsService : IEntityService<Transport, TransportCreateDTO>
 {
-    private List<Transport> _transports = [];
+    private readonly List<Transport> _transports = [];
     private int _id = 1;
 
     /// <summary>
@@ -38,11 +38,11 @@ public class TransportsService : IEntityService<Transport, TransportCreateDTO, T
             ModelName = newTransport.ModelName,
             IsLowFloor = newTransport.IsLowFloor,
             MaxCapacity = newTransport.MaxCapacity,
-            Type = (Model.VehicleType)newTransport.Type,
+            Type = newTransport.Type,
             YearOfManufacture = newTransport.YearOfManufacture
         };
         _transports.Add(transport);
-        return _transports.FirstOrDefault(d => d.Id == transport.Id);
+        return transport;
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class TransportsService : IEntityService<Transport, TransportCreateDTO, T
     /// </summary>
     /// <param name="updateTransport">Объект, содержащий обновленные данные транспортного средства.</param>
     /// <returns>Значение true, если обновление прошло успешно; иначе false.</returns>
-    public bool Update(TransportDTO updateTransport)
+    public bool Update(Transport updateTransport)
     {
         var transport = GetById(updateTransport.Id);
         if (transport == null) return false;
@@ -59,7 +59,7 @@ public class TransportsService : IEntityService<Transport, TransportCreateDTO, T
         transport.MaxCapacity = updateTransport.MaxCapacity;
         transport.LicensePlate = updateTransport.LicensePlate;
         transport.ModelName = updateTransport.ModelName;
-        transport.Type = (Model.VehicleType)updateTransport.Type;
+        transport.Type = updateTransport.Type;
         return true;
     }
 

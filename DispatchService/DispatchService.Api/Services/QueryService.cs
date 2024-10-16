@@ -48,8 +48,7 @@ public class QueryService(RoutesService routesService)
                 TripCount = g.Count()
             })
             .OrderByDescending(g => g.TripCount)
-            .Take(5)
-            .ToList()];
+            .Take(5)];
     }
 
     /// <summary>

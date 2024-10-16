@@ -5,9 +5,9 @@ namespace DispatchService.Api.Services;
 /// <summary>
 /// Сервис для управления маршрутами.
 /// </summary>
-public class RoutesService(DriversService driversService, TransportsService transportsService) : IEntityService<Route, RouteCreateDTO, RouteDTO>
+public class RoutesService(DriversService driversService, TransportsService transportsService) : IEntityService<Route, RouteCreateDTO>
 {
-    private List<Route> _routes = [];
+    private readonly List<Route> _routes = [];
     private int _id = 1;
 
     /// <summary>
@@ -46,7 +46,7 @@ public class RoutesService(DriversService driversService, TransportsService tran
             EndTime = newRoute.EndTime
         };
         _routes.Add(route);
-        return _routes.FirstOrDefault(d => d.Id == route.Id);
+        return route;
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ public class RoutesService(DriversService driversService, TransportsService tran
     /// </summary>
     /// <param name="updateRoute">Объект с обновленными данными маршрута.</param>
     /// <returns>Значение true, если обновление прошло успешно; иначе false.</returns>
-    public bool Update(RouteDTO updateRoute)
+    public bool Update(Route updateRoute)
     {
         var route = GetById(updateRoute.Id);
         if (route == null) return false;

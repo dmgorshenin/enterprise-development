@@ -46,7 +46,7 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// </summary>
     /// <param name="driver">Данные для создания нового водителя.</param>
     /// <returns>Созданный водитель.</returns>
-    /// <response code="201">Водитель успешно добавлен.</response>
+    /// <response code="200">Водитель успешно добавлен.</response>
     /// <response code="400">Некорректные данные для создания водителя.</response>
     [HttpPost]
     public ActionResult<Driver> Post(DriverCreateDTO driver)
@@ -54,7 +54,7 @@ public class DriversController(DriversService driverService, QueryService queryS
         if (driver == null) return BadRequest("Данные водителя не могут быть пустыми.");
         var result = driverService.Add(driver);
         if (result == null) return BadRequest("Некорректные данные водителя.");
-        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        return Ok(result);
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="400">Некорректные данные для обновления водителя.</response>
     /// <response code="404">Водитель с указанным идентификатором не найден.</response>
     [HttpPut]
-    public ActionResult<Driver> Put(DriverDTO driver)
+    public ActionResult<Driver> Put(Driver driver)
     {
         if (driver == null || driver.Id == 0) return BadRequest("Некорректные данные водителя.");
         var success = driverService.Update(driver);

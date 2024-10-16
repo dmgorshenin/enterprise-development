@@ -46,7 +46,7 @@ public class RoutesController(RoutesService routeService) : ControllerBase
     /// </summary>
     /// <param name="route">Данные для создания нового маршрута.</param>
     /// <returns>Созданный маршрут и код 201 (Created) при успешном создании.</returns>
-    /// <response code="201">Маршрут успешно создан.</response>
+    /// <response code="200">Маршрут успешно создан.</response>
     /// <response code="400">Некорректные данные для создания маршрута.</response>
     [HttpPost]
     public ActionResult<Route> Post(RouteCreateDTO route)
@@ -54,7 +54,7 @@ public class RoutesController(RoutesService routeService) : ControllerBase
         if (route == null) return BadRequest("Данные маршрута не могут быть пустыми.");
         var result = routeService.Add(route);
         if (result == null) return BadRequest("Некорректные данные для маршрута.");
-        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        return Ok(result);
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class RoutesController(RoutesService routeService) : ControllerBase
     /// <response code="400">Некорректные данные для обновления маршрута.</response>
     /// <response code="404">Маршрут с указанным идентификатором не найден.</response>
     [HttpPut]
-    public ActionResult<Route> Put(RouteDTO route)
+    public ActionResult<Route> Put(Route route)
     {
         if (route == null || route.Id == 0) return BadRequest("Некорректные данные для маршрута.");
         var success = routeService.Update(route);

@@ -40,13 +40,3 @@ public class Transport
     /// </summary>
     public int? YearOfManufacture { get; set; }
 }
-
-/// <summary>
-/// Виды транспорта
-/// </summary>
-public enum VehicleType
-{
-    Bus,
-    Tram,
-    Trolleybus
-}

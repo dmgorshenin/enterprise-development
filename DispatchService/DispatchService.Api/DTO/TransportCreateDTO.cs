@@ -1,4 +1,5 @@
-﻿namespace DispatchService.Api.DTO;
+﻿using VehicleType = DispatchService.Model.VehicleType;
+namespace DispatchService.Api.DTO;
 
 /// <summary>
 /// DTO создания транспорта

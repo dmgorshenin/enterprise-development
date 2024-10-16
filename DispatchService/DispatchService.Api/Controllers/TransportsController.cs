@@ -46,7 +46,7 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// </summary>
     /// <param name="transport">Данные для создания нового транспортного средства.</param>
     /// <returns>Созданное транспортное средство.</returns>
-    /// <response code="201">Транспортное средство успешно добавлено.</response>
+    /// <response code="200">Транспортное средство успешно добавлено.</response>
     /// <response code="400">Некорректные данные для создания транспортного средства.</response>
     [HttpPost]
     public ActionResult<Transport> Post(TransportCreateDTO transport)
@@ -54,7 +54,7 @@ public class TransportsController(TransportsService transportService, QueryServi
         if (transport == null) return BadRequest("Данные транспортного средства не могут быть пустыми.");
         var result = transportService.Add(transport);
         if (result == null) return BadRequest("Некорректные данные транспортного средства.");
-        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        return Ok(result);
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="400">Некорректные данные для обновления транспортного средства.</response>
     /// <response code="404">Транспортное средство с указанным идентификатором не найдено.</response>
     [HttpPut]
-    public ActionResult<Transport> Put(TransportDTO transport)
+    public ActionResult<Transport> Put(Transport transport)
     {
         if (transport == null || transport.Id == 0) return BadRequest("Некорректные данные транспортного средства.");
         var success = transportService.Update(transport);

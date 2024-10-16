@@ -6,9 +6,9 @@ namespace DispatchService.Api.Services;
 /// <summary>
 /// Сервис для управления водителями.
 /// </summary>
-public class DriversService : IEntityService<Driver, DriverCreateDTO, DriverDTO>
+public class DriversService : IEntityService<Driver, DriverCreateDTO>
 {
-    private List<Driver> _drivers = [];
+    private readonly List<Driver> _drivers = [];
     private int _id = 1;
 
     /// <summary>
@@ -41,7 +41,7 @@ public class DriversService : IEntityService<Driver, DriverCreateDTO, DriverDTO>
             PhoneNumber = newDriver.PhoneNumber
         };
         _drivers.Add(driver);
-        return _drivers.FirstOrDefault(d => d.Id == driver.Id);
+        return driver;
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class DriversService : IEntityService<Driver, DriverCreateDTO, DriverDTO>
     /// </summary>
     /// <param name="updateDriver">DTO с обновленными данными водителя.</param>
     /// <returns>True, если водитель был успешно обновлен, иначе false.</returns>
-    public bool Update(DriverDTO updateDriver)
+    public bool Update(Driver updateDriver)
     {
         var driver = GetById(updateDriver.Id);
         if (driver == null) return false;
