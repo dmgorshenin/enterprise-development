@@ -1,28 +1,26 @@
 ﻿using DispatchService.Api.DTO;
-using DispatchService.Model;
+using DispatchService.Model.Context;
+using DispatchService.Model.Entities;
 
 namespace DispatchService.Api.Services;
 
 /// <summary>
 /// Сервис для управления водителями.
 /// </summary>
-public class DriversService : IEntityService<Driver, DriverCreateDTO>
+public class DriversService(DispatchServiceDbContext storeDispatchServiceDbContext) : IEntityService<Driver, DriverCreateDTO, DriverUpdateDTO>
 {
-    private readonly List<Driver> _drivers = [];
-    private int _id = 1;
-
     /// <summary>
     /// Получает всех водителей.
     /// </summary>
     /// <returns>Список всех водителей.</returns>
-    public List<Driver> GetAll() => _drivers;
+    public IEnumerable<Driver> GetAll() => storeDispatchServiceDbContext.Driver;
 
     /// <summary>
     /// Получает водителя по ID.
     /// </summary>
     /// <param name="id">ID водителя.</param>
     /// <returns>Водитель с указанным ID или null, если не найден.</returns>
-    public Driver? GetById(int id) => _drivers.FirstOrDefault(d => d.Id == id);
+    public Driver? GetById(int id) => storeDispatchServiceDbContext.Driver.FirstOrDefault(d => d.Id == id);
 
     /// <summary>
     /// Добавляет нового водителя.
@@ -33,14 +31,15 @@ public class DriversService : IEntityService<Driver, DriverCreateDTO>
     {
         var driver = new Driver
         {
-            Id = _id++,
+            Id = 0,
             FullName = newDriver.FullName,
             DriverLicense = newDriver.DriverLicense,
             Passport = newDriver.Passport,
             Address = newDriver.Address,
             PhoneNumber = newDriver.PhoneNumber
         };
-        _drivers.Add(driver);
+        storeDispatchServiceDbContext.Driver.Add(driver);
+        storeDispatchServiceDbContext.SaveChanges();
         return driver;
     }
 
@@ -49,15 +48,16 @@ public class DriversService : IEntityService<Driver, DriverCreateDTO>
     /// </summary>
     /// <param name="updateDriver">DTO с обновленными данными водителя.</param>
     /// <returns>True, если водитель был успешно обновлен, иначе false.</returns>
-    public bool Update(Driver updateDriver)
+    public bool Update(DriverUpdateDTO updateDriver)
     {
-        var driver = GetById(updateDriver.Id);
+        var driver = GetById(updateDriver.DriverId);
         if (driver == null) return false;
         driver.Address = updateDriver.Address;
         driver.PhoneNumber = updateDriver.PhoneNumber;
         driver.DriverLicense = updateDriver.DriverLicense;
         driver.Passport = updateDriver.Passport;
         driver.FullName = updateDriver.FullName;
+        storeDispatchServiceDbContext.SaveChanges();
         return true;
     }
 
@@ -70,6 +70,8 @@ public class DriversService : IEntityService<Driver, DriverCreateDTO>
     {
         var driver = GetById(id);
         if (driver == null) return false;
-        return _drivers.Remove(driver);
+        storeDispatchServiceDbContext.Driver.Remove(driver);
+        storeDispatchServiceDbContext.SaveChanges();
+        return true;
     }
 }

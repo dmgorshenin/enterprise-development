@@ -1,27 +1,29 @@
 ﻿using DispatchService.Api.DTO;
-using Route = DispatchService.Model.Route;
+using DispatchService.Model.Context;
+using Microsoft.EntityFrameworkCore;
+using Route = DispatchService.Model.Entities.Route;
 namespace DispatchService.Api.Services;
 
 /// <summary>
 /// Сервис для управления маршрутами.
 /// </summary>
-public class RoutesService(DriversService driversService, TransportsService transportsService) : IEntityService<Route, RouteCreateDTO>
+public class RoutesService(DriversService driversService, TransportsService transportsService, DispatchServiceDbContext storeDispatchServiceDbContext) : IEntityService<Route, RouteCreateDTO, RouteUpdateDTO>
 {
-    private readonly List<Route> _routes = [];
-    private int _id = 1;
-
     /// <summary>
     /// Получает список всех маршрутов.
     /// </summary>
     /// <returns>Список объектов <see cref="Route"/>.</returns>
-    public List<Route> GetAll() => _routes;
+    public IEnumerable<Route> GetAll() => storeDispatchServiceDbContext.Route.Include(r => r.AssignedTransport).Include(r => r.AssignedDriver);
 
     /// <summary>
     /// Получает маршрут по его идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор маршрута.</param>
     /// <returns>Объект <see cref="Route"/> или null, если маршрут не найден.</returns>
-    public Route? GetById(int id) => _routes.FirstOrDefault(d => d.Id == id);
+    public Route? GetById(int id)
+    {
+        return storeDispatchServiceDbContext.Route.Include(r => r.AssignedTransport).Include(r => r.AssignedDriver).FirstOrDefault(d => d.Id == id);
+    }
 
     /// <summary>
     /// Добавляет новый маршрут.
@@ -38,14 +40,15 @@ public class RoutesService(DriversService driversService, TransportsService tran
 
         var route = new Route
         {
-            Id = _id++,
+            Id = 0,
             RouteNumber = newRoute.RouteNumber,
             AssignedDriver = assignedDriver,
             AssignedTransport = assignedTransport,
             StartTime = newRoute.StartTime,
             EndTime = newRoute.EndTime
         };
-        _routes.Add(route);
+        storeDispatchServiceDbContext.Route.Add(route);
+        storeDispatchServiceDbContext.SaveChanges();
         return route;
     }
 
@@ -54,15 +57,24 @@ public class RoutesService(DriversService driversService, TransportsService tran
     /// </summary>
     /// <param name="updateRoute">Объект с обновленными данными маршрута.</param>
     /// <returns>Значение true, если обновление прошло успешно; иначе false.</returns>
-    public bool Update(Route updateRoute)
+    public bool Update(RouteUpdateDTO updateRoute)
     {
-        var route = GetById(updateRoute.Id);
+        var route = GetById(updateRoute.RouteId);
+        var driver = driversService.GetById(updateRoute.AssignedDriverId);
+        var transport = transportsService.GetById(updateRoute.AssignedTransportId);
         if (route == null) return false;
         route.RouteNumber = updateRoute.RouteNumber;
-        route.AssignedDriver = updateRoute.AssignedDriver;
-        route.AssignedTransport = updateRoute.AssignedTransport;
+        if (driver != null)
+        {
+            route.AssignedDriver = driver;
+        }
+        if (transport != null)
+        {
+            route.AssignedTransport = transport;
+        }
         route.StartTime = updateRoute.StartTime;
         route.EndTime = updateRoute.EndTime;
+        storeDispatchServiceDbContext.SaveChanges();
         return true;
     }
 
@@ -75,6 +87,8 @@ public class RoutesService(DriversService driversService, TransportsService tran
     {
         var route = GetById(id);
         if (route == null) return false;
-        return _routes.Remove(route);
+        storeDispatchServiceDbContext.Route.Remove(route);
+        storeDispatchServiceDbContext.SaveChanges();
+        return true;
     }
 }

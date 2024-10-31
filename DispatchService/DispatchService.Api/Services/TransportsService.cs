@@ -1,28 +1,26 @@
 ﻿using DispatchService.Api.DTO;
-using DispatchService.Model;
+using DispatchService.Model.Context;
+using DispatchService.Model.Entities;
 
 namespace DispatchService.Api.Services;
 
 /// <summary>
 /// Сервис для управления транспортными средствами.
 /// </summary>
-public class TransportsService : IEntityService<Transport, TransportCreateDTO>
+public class TransportsService(DispatchServiceDbContext storeDispatchServiceDbContext) : IEntityService<Transport, TransportCreateDTO, TransportUpdateDTO>
 {
-    private readonly List<Transport> _transports = [];
-    private int _id = 1;
-
     /// <summary>
     /// Получает список всех транспортных средств.
     /// </summary>
     /// <returns>Список объектов <see cref="Transport"/>.</returns>
-    public List<Transport> GetAll() => _transports;
+    public IEnumerable<Transport> GetAll() => storeDispatchServiceDbContext.Transport;
 
     /// <summary>
     /// Получает транспортное средство по его идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор транспортного средства.</param>
     /// <returns>Объект <see cref="Transport"/> или null, если транспортное средство не найдено.</returns>
-    public Transport? GetById(int id) => _transports.FirstOrDefault(d => d.Id == id);
+    public Transport? GetById(int id) => storeDispatchServiceDbContext.Transport.FirstOrDefault(d => d.Id == id);
 
     /// <summary>
     /// Добавляет новое транспортное средство.
@@ -33,7 +31,7 @@ public class TransportsService : IEntityService<Transport, TransportCreateDTO>
     {
         var transport = new Transport
         {
-            Id = _id++,
+            Id = 0,
             LicensePlate = newTransport.LicensePlate,
             ModelName = newTransport.ModelName,
             IsLowFloor = newTransport.IsLowFloor,
@@ -41,7 +39,8 @@ public class TransportsService : IEntityService<Transport, TransportCreateDTO>
             Type = newTransport.Type,
             YearOfManufacture = newTransport.YearOfManufacture
         };
-        _transports.Add(transport);
+        storeDispatchServiceDbContext.Transport.Add(transport);
+        storeDispatchServiceDbContext.SaveChanges();
         return transport;
     }
 
@@ -50,9 +49,9 @@ public class TransportsService : IEntityService<Transport, TransportCreateDTO>
     /// </summary>
     /// <param name="updateTransport">Объект, содержащий обновленные данные транспортного средства.</param>
     /// <returns>Значение true, если обновление прошло успешно; иначе false.</returns>
-    public bool Update(Transport updateTransport)
+    public bool Update(TransportUpdateDTO updateTransport)
     {
-        var transport = GetById(updateTransport.Id);
+        var transport = GetById(updateTransport.TransportId);
         if (transport == null) return false;
         transport.IsLowFloor = updateTransport.IsLowFloor;
         transport.YearOfManufacture = updateTransport.YearOfManufacture;
@@ -60,6 +59,7 @@ public class TransportsService : IEntityService<Transport, TransportCreateDTO>
         transport.LicensePlate = updateTransport.LicensePlate;
         transport.ModelName = updateTransport.ModelName;
         transport.Type = updateTransport.Type;
+        storeDispatchServiceDbContext.SaveChanges();
         return true;
     }
 
@@ -72,6 +72,8 @@ public class TransportsService : IEntityService<Transport, TransportCreateDTO>
     {
         var transport = GetById(id);
         if (transport == null) return false;
-        return _transports.Remove(transport);
+        storeDispatchServiceDbContext.Transport.Remove(transport);
+        storeDispatchServiceDbContext.SaveChanges();
+        return true;
     }
 }

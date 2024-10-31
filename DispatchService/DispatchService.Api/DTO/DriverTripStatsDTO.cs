@@ -1,4 +1,4 @@
-﻿using DispatchService.Model;
+﻿using DispatchService.Model.Entities;
 
 namespace DispatchService.Api.DTO;
 

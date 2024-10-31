@@ -1,14 +1,14 @@
-﻿namespace DispatchService.Model;
+﻿namespace DispatchService.Api.DTO;
 
 /// <summary>
-/// Маршрут
+/// DTO для обновления маршрута
 /// </summary>
-public class Route
+public class RouteUpdateDTO
 {
     /// <summary>
     /// Идентификатор маршрута
     /// </summary>
-    public required int Id { get; set; }
+    public required int RouteId { get; set; }
 
     /// <summary>
     /// Номер маршрута
@@ -18,12 +18,12 @@ public class Route
     /// <summary>
     /// Назначенный транспорт
     /// </summary>
-    public required Transport AssignedTransport { get; set; }
+    public required int AssignedTransportId { get; set; }
 
     /// <summary>
     /// Назначенный водитель
     /// </summary>
-    public required Driver AssignedDriver { get; set; }
+    public required int AssignedDriverId { get; set; }
 
     /// <summary>
     /// Время начала маршрута 

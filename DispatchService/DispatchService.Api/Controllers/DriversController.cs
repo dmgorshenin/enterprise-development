@@ -1,6 +1,6 @@
 ﻿using DispatchService.Api.DTO;
 using DispatchService.Api.Services;
-using DispatchService.Model;
+using DispatchService.Model.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DispatchService.Api.Controllers;
@@ -66,11 +66,11 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="400">Некорректные данные для обновления водителя.</response>
     /// <response code="404">Водитель с указанным идентификатором не найден.</response>
     [HttpPut]
-    public ActionResult<Driver> Put(Driver driver)
+    public ActionResult<Driver> Put(DriverUpdateDTO driver)
     {
-        if (driver == null || driver.Id == 0) return BadRequest("Некорректные данные водителя.");
+        if (driver == null || driver.DriverId == 0) return BadRequest("Некорректные данные водителя.");
         var success = driverService.Update(driver);
-        if (!success) return NotFound($"Водитель с ID {driver.Id} не найден.");
+        if (!success) return NotFound($"Водитель с ID {driver.DriverId} не найден.");
         return Ok("Водитель успешно обновлен.");
     }
 

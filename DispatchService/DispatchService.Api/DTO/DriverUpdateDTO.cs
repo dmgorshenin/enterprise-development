@@ -1,15 +1,14 @@
-﻿namespace DispatchService.Model;
+﻿namespace DispatchService.Api.DTO;
 
 /// <summary>
-/// Водитель
+/// DTO для обновления водителя
 /// </summary>
-public class Driver
+public class DriverUpdateDTO
 {
     /// <summary>
     /// Идентификатор водителя
     /// </summary>
-    public required int Id { get; set; }
-
+    public required int DriverId { get; set; }
     /// <summary>
     /// ФИО
     /// </summary>
@@ -28,10 +27,10 @@ public class Driver
     /// <summary>
     /// Адрес
     /// </summary>
-    public string? Address { get; set; }
+    public required string Address { get; set; }
 
     /// <summary>
     /// Номер телефона
     /// </summary>
-    public string? PhoneNumber { get; set; }
+    public required string PhoneNumber { get; set; }
 }

@@ -1,6 +1,6 @@
 ﻿using DispatchService.Api.DTO;
 using DispatchService.Api.Services;
-using DispatchService.Model;
+using DispatchService.Model.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DispatchService.Api.Controllers;
@@ -66,11 +66,11 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="400">Некорректные данные для обновления транспортного средства.</response>
     /// <response code="404">Транспортное средство с указанным идентификатором не найдено.</response>
     [HttpPut]
-    public ActionResult<Transport> Put(Transport transport)
+    public ActionResult<Transport> Put(TransportUpdateDTO transport)
     {
-        if (transport == null || transport.Id == 0) return BadRequest("Некорректные данные транспортного средства.");
+        if (transport == null || transport.TransportId == 0) return BadRequest("Некорректные данные транспортного средства.");
         var success = transportService.Update(transport);
-        if (!success) return NotFound($"Транспортное средство с ID {transport.Id} не найдено.");
+        if (!success) return NotFound($"Транспортное средство с ID {transport.TransportId} не найдено.");
         return Ok("Транспортное средство успешно обновлено.");
     }
 

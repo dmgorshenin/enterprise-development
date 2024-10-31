@@ -1,7 +1,7 @@
 ﻿using DispatchService.Api.DTO;
 using DispatchService.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Route = DispatchService.Model.Route;
+using Route = DispatchService.Model.Entities.Route;
 
 namespace DispatchService.Api.Controllers;
 
@@ -66,11 +66,11 @@ public class RoutesController(RoutesService routeService) : ControllerBase
     /// <response code="400">Некорректные данные для обновления маршрута.</response>
     /// <response code="404">Маршрут с указанным идентификатором не найден.</response>
     [HttpPut]
-    public ActionResult<Route> Put(Route route)
+    public ActionResult<Route> Put(RouteUpdateDTO route)
     {
-        if (route == null || route.Id == 0) return BadRequest("Некорректные данные для маршрута.");
-        var success = routeService.Update(route);
-        if (!success) return NotFound($"Маршрут с ID {route.Id} не найден.");
+        if (route == null || route.RouteId == 0) return BadRequest("Некорректные данные для маршрута.");
+        var result = routeService.Update(route);
+        if (!result) return NotFound($"Маршрут с ID {route.RouteId} не найден.");
         return Ok("Маршрут успешно обновлен.");
     }
 
@@ -84,8 +84,8 @@ public class RoutesController(RoutesService routeService) : ControllerBase
     [HttpDelete("{id:int}")]
     public IActionResult Delete(int id)
     {
-        var success = routeService.Delete(id);
-        if (!success) return NotFound($"Маршрут с ID {id} не найден.");
+        var result = routeService.Delete(id);
+        if (!result) return NotFound($"Маршрут с ID {id} не найден.");
         return Ok("Маршрут успешно удален.");
     }
 }

@@ -3,12 +3,12 @@
 /// <summary>
 ///  Интерфейс для сервисов сущностей
 /// </summary>
-public interface IEntityService<T, CreateDTO>
+public interface IEntityService<T, CreateDTO, UpdateDTO>
 {
     /// <summary>
     /// Получение всех сущностей
     /// </summary>
-    public List<T> GetAll();
+    public IEnumerable<T> GetAll();
 
     /// <summary>
     /// Получение сущности при помощи id
@@ -28,5 +28,5 @@ public interface IEntityService<T, CreateDTO>
     /// <summary>
     /// Изменение сущности
     /// </summary>
-    bool Update(T updatedEntity);
+    bool Update(UpdateDTO updatedEntity);
 }

@@ -1,5 +1,5 @@
 ﻿using DispatchService.Api.DTO;
-using DispatchService.Model;
+using DispatchService.Model.Entities;
 using System.Data;
 namespace DispatchService.Api.Services;
 
@@ -26,13 +26,14 @@ public class QueryService(RoutesService routesService)
     /// </summary>
     public List<TotalTripTimesDTO> GetTotalTripTimesByTransport()
     {
-        return [.. routesService.GetAll()
+        return routesService.GetAll()
             .GroupBy(r => r.AssignedTransport.ModelName)
             .Select(g => new TotalTripTimesDTO
             {
                 ModelName = g.Key,
                 TotalTripTime = TimeSpan.FromHours(g.Sum(r => (r.EndTime - r.StartTime).TotalHours))
-            })];
+            })
+            .ToList();
     }
 
     /// <summary>
@@ -40,7 +41,7 @@ public class QueryService(RoutesService routesService)
     /// </summary>
     public List<DriverTripCountDTO> GetTopDriversByTripCount()
     {
-        return [.. routesService.GetAll()
+        return routesService.GetAll()
             .GroupBy(r => r.AssignedDriver.Id)
             .Select(g => new DriverTripCountDTO
             {
@@ -48,7 +49,8 @@ public class QueryService(RoutesService routesService)
                 TripCount = g.Count()
             })
             .OrderByDescending(g => g.TripCount)
-            .Take(5)];
+            .Take(5)
+            .ToList();
     }
 
     /// <summary>
@@ -56,7 +58,7 @@ public class QueryService(RoutesService routesService)
     /// </summary>
     public List<DriverTripStatsDTO> GetDriverTripStats()
     {
-        return [.. routesService.GetAll()
+        return routesService.GetAll()
             .GroupBy(r => r.AssignedDriver)
             .Select(g => new DriverTripStatsDTO
             {
@@ -64,7 +66,8 @@ public class QueryService(RoutesService routesService)
                 TripCount = g.Count(),
                 AvgTripTime = g.Average(r => (r.EndTime - r.StartTime).TotalHours),
                 MaxTripTime = g.Max(r => (r.EndTime - r.StartTime).TotalHours)
-            })];
+            })
+            .ToList();
     }
 
     /// <summary>
@@ -72,7 +75,7 @@ public class QueryService(RoutesService routesService)
     /// </summary>
     public List<TransportTripCountDTO> GetTopTransportsByTripCount(DateTime startDate, DateTime endDate)
     {
-        return [.. routesService.GetAll()
+        return routesService.GetAll()
             .Where(r => r.StartTime >= startDate && r.EndTime <= endDate)
             .GroupBy(r => r.AssignedTransport)
             .Select(g => new TransportTripCountDTO
@@ -81,6 +84,7 @@ public class QueryService(RoutesService routesService)
                 TripCount = g.Count()
             })
             .OrderByDescending(g => g.TripCount)
-            .Take(5)];
+            .Take(5)
+            .ToList();
     }
 }

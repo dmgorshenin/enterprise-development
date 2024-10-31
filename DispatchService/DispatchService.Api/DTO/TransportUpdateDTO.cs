@@ -1,11 +1,16 @@
-﻿using VehicleType = DispatchService.Model.Entities.VehicleType;
+﻿using DispatchService.Model.Entities;
 namespace DispatchService.Api.DTO;
 
 /// <summary>
-/// DTO создания транспорта
+/// DTO для обновления транспорта
 /// </summary>
-public class TransportCreateDTO
+public class TransportUpdateDTO
 {
+    /// <summary>
+    /// Идентификатор транспорта
+    /// </summary>
+    public required int TransportId { get; set; }
+
     /// <summary>
     /// Госномер автомобиля
     /// </summary>
@@ -36,4 +41,3 @@ public class TransportCreateDTO
     /// </summary>
     public required int YearOfManufacture { get; set; }
 }
-
