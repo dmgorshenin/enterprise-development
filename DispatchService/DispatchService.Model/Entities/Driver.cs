@@ -13,6 +13,7 @@ public class Driver
     /// Идентификатор водителя
     /// </summary>
     [Key]
+    [Column("id")]
     public required int Id { get; set; }
 
     /// <summary>

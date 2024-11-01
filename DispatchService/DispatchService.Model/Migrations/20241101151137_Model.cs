@@ -16,7 +16,7 @@ namespace DispatchService.Model.Migrations
                 name: "driver",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     fullname = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     passport = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
@@ -26,14 +26,14 @@ namespace DispatchService.Model.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_driver", x => x.Id);
+                    table.PrimaryKey("PK_driver", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "transport",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     license_plate = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
                     vehicle_type = table.Column<int>(type: "integer", nullable: false),
@@ -44,14 +44,14 @@ namespace DispatchService.Model.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_transport", x => x.Id);
+                    table.PrimaryKey("PK_transport", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "route",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     route_number = table.Column<string>(type: "text", nullable: false),
                     assigned_transport = table.Column<int>(type: "integer", nullable: false),
@@ -61,18 +61,18 @@ namespace DispatchService.Model.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_route", x => x.Id);
+                    table.PrimaryKey("PK_route", x => x.id);
                     table.ForeignKey(
                         name: "FK_route_driver_assigned_driver",
                         column: x => x.assigned_driver,
                         principalTable: "driver",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_route_transport_assigned_transport",
                         column: x => x.assigned_transport,
                         principalTable: "transport",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 

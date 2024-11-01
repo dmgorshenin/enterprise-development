@@ -14,6 +14,7 @@ public class Route
     /// Идентификатор маршрута
     /// </summary>
     [Key]
+    [Column("id")]
     public required int Id { get; set; }
 
     /// <summary>

@@ -13,6 +13,7 @@ public class Transport
     /// Идентификатор транспорта
     /// </summary>
     [Key]
+    [Column("id")]
     public required int Id { get; set; }
 
     /// <summary>
