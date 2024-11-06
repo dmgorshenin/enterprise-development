@@ -5,7 +5,7 @@ namespace DispatchService.Api.DTO;
 /// <summary>
 /// DTO для хранения статистики поездок водителя.
 /// </summary>
-public class DriverTripStatsDTO
+public class DriverTripStatsDto
 {
     /// <summary>
     /// Получает или устанавливает водителя.

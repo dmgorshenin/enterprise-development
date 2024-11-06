@@ -1,5 +1,6 @@
 ﻿using DispatchService.Api.DTO;
 using DispatchService.Model.Context;
+using DispatchService.Model.Entities;
 using Microsoft.EntityFrameworkCore;
 using Route = DispatchService.Model.Entities.Route;
 namespace DispatchService.Api.Services;
@@ -7,22 +8,36 @@ namespace DispatchService.Api.Services;
 /// <summary>
 /// Сервис для управления маршрутами.
 /// </summary>
-public class RoutesService(DriversService driversService, TransportsService transportsService, DispatchServiceDbContext storeDispatchServiceDbContext) : IEntityService<Route, RouteCreateDTO, RouteUpdateDTO>
+public class RoutesService : IEntityService<Route, RouteCreateDto, RouteUpdateDto>
 {
+    private readonly IEntityService<Driver, DriverCreateDto, DriverUpdateDto> _driversService;
+    private readonly IEntityService<Transport, TransportCreateDto, TransportUpdateDto> _transportsService;
+    private readonly DispatchServiceDbContext _dbContext;
+
+    public RoutesService(
+        IEntityService<Driver, DriverCreateDto, DriverUpdateDto> driversService,
+        IEntityService<Transport, TransportCreateDto, TransportUpdateDto> transportsService,
+        DispatchServiceDbContext dbContext)
+    {
+        _driversService = driversService;
+        _transportsService = transportsService;
+        _dbContext = dbContext;
+    }
+
     /// <summary>
     /// Получает список всех маршрутов.
     /// </summary>
     /// <returns>Список объектов <see cref="Route"/>.</returns>
-    public IEnumerable<Route> GetAll() => storeDispatchServiceDbContext.Route.Include(r => r.AssignedTransport).Include(r => r.AssignedDriver);
+    public async Task<IEnumerable<Route>> GetAllAsync() => await _dbContext.Route.Include(r => r.AssignedTransport).Include(r => r.AssignedDriver).ToListAsync();
 
     /// <summary>
     /// Получает маршрут по его идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор маршрута.</param>
     /// <returns>Объект <see cref="Route"/> или null, если маршрут не найден.</returns>
-    public Route? GetById(int id)
+    public async Task<Route?> GetByIdAsync(int id)
     {
-        return storeDispatchServiceDbContext.Route.Include(r => r.AssignedTransport).Include(r => r.AssignedDriver).FirstOrDefault(d => d.Id == id);
+        return await _dbContext.Route.Include(r => r.AssignedTransport).Include(r => r.AssignedDriver).FirstOrDefaultAsync(d => d.Id == id);
     }
 
     /// <summary>
@@ -30,13 +45,13 @@ public class RoutesService(DriversService driversService, TransportsService tran
     /// </summary>
     /// <param name="newRoute">Данные для создания нового маршрута.</param>
     /// <returns>Созданный маршрут или null, если не удалось найти водителя или транспортное средство.</returns>
-    public Route? Add(RouteCreateDTO newRoute)
+    public async Task<Route?> AddAsync(RouteCreateDto newRoute)
     {
-        var assignedDriver = driversService.GetById(newRoute.AssignedDriverId);
-        var assignedTransport = transportsService.GetById(newRoute.AssignedTransportId);
+        var assignedDriver = await _driversService.GetByIdAsync(newRoute.AssignedDriverId);
+        var assignedTransport = await _transportsService.GetByIdAsync(newRoute.AssignedTransportId);
 
-        if (assignedDriver == null) return null;
-        if (assignedTransport == null) return null;
+        if (assignedDriver == null || assignedTransport == null)
+            return null;
 
         var route = new Route
         {
@@ -47,8 +62,8 @@ public class RoutesService(DriversService driversService, TransportsService tran
             StartTime = newRoute.StartTime,
             EndTime = newRoute.EndTime
         };
-        storeDispatchServiceDbContext.Route.Add(route);
-        storeDispatchServiceDbContext.SaveChanges();
+        await _dbContext.Route.AddAsync(route);
+        await _dbContext.SaveChangesAsync();
         return route;
     }
 
@@ -57,24 +72,18 @@ public class RoutesService(DriversService driversService, TransportsService tran
     /// </summary>
     /// <param name="updateRoute">Объект с обновленными данными маршрута.</param>
     /// <returns>Значение true, если обновление прошло успешно; иначе false.</returns>
-    public bool Update(RouteUpdateDTO updateRoute)
+    public async Task<bool> UpdateAsync(RouteUpdateDto updateRoute)
     {
-        var route = GetById(updateRoute.RouteId);
-        var driver = driversService.GetById(updateRoute.AssignedDriverId);
-        var transport = transportsService.GetById(updateRoute.AssignedTransportId);
+        var route = await GetByIdAsync(updateRoute.RouteId);
         if (route == null) return false;
+
         route.RouteNumber = updateRoute.RouteNumber;
-        if (driver != null)
-        {
-            route.AssignedDriver = driver;
-        }
-        if (transport != null)
-        {
-            route.AssignedTransport = transport;
-        }
+        route.AssignedDriver = await _driversService.GetByIdAsync(updateRoute.AssignedDriverId) ?? route.AssignedDriver;
+        route.AssignedTransport = await _transportsService.GetByIdAsync(updateRoute.AssignedTransportId) ?? route.AssignedTransport;
         route.StartTime = updateRoute.StartTime;
         route.EndTime = updateRoute.EndTime;
-        storeDispatchServiceDbContext.SaveChanges();
+
+        await _dbContext.SaveChangesAsync();
         return true;
     }
 
@@ -83,12 +92,12 @@ public class RoutesService(DriversService driversService, TransportsService tran
     /// </summary>
     /// <param name="id">Идентификатор маршрута.</param>
     /// <returns>Значение true, если удаление прошло успешно; иначе false.</returns>
-    public bool Delete(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
-        var route = GetById(id);
+        var route = await GetByIdAsync(id);
         if (route == null) return false;
-        storeDispatchServiceDbContext.Route.Remove(route);
-        storeDispatchServiceDbContext.SaveChanges();
+        _dbContext.Route.Remove(route);
+        await _dbContext.SaveChangesAsync();
         return true;
     }
 }

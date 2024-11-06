@@ -1,32 +1,34 @@
 ﻿namespace DispatchService.Api.Services;
 
+using System.Threading.Tasks;
+
 /// <summary>
 ///  Интерфейс для сервисов сущностей
 /// </summary>
-public interface IEntityService<T, CreateDTO, UpdateDTO>
+public interface IEntityService<T, CreateDto, UpdateDto>
 {
     /// <summary>
     /// Получение всех сущностей
     /// </summary>
-    public IEnumerable<T> GetAll();
+    Task<IEnumerable<T>> GetAllAsync();
 
     /// <summary>
     /// Получение сущности при помощи id
     /// </summary>
-    T? GetById(int id);
+    Task<T?> GetByIdAsync(int id);
 
     /// <summary>
     /// Добавление сущности
     /// </summary>
-    T? Add(CreateDTO entity);
+    Task<T?> AddAsync(CreateDto newEntity);
 
     /// <summary>
     /// Удаление сущности
     /// </summary>
-    bool Delete(int id);
+    Task<bool> DeleteAsync(int id);
 
     /// <summary>
     /// Изменение сущности
     /// </summary>
-    bool Update(UpdateDTO updatedEntity);
+    Task<bool> UpdateAsync(UpdateDto updatedEntity);
 }

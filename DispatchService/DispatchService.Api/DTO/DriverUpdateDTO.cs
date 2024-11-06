@@ -3,7 +3,7 @@
 /// <summary>
 /// DTO для обновления водителя
 /// </summary>
-public class DriverUpdateDTO
+public class DriverUpdateDto
 {
     /// <summary>
     /// Идентификатор водителя

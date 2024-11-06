@@ -10,8 +10,16 @@ namespace DispatchService.Api.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class DriversController(DriversService driverService, QueryService queryService) : ControllerBase
+public class DriversController : ControllerBase
 {
+    private readonly IEntityService<Driver, DriverCreateDto, DriverUpdateDto> _driverService;
+    private readonly QueryService _queryService;
+    public DriversController(IEntityService<Driver, DriverCreateDto, DriverUpdateDto> driverService, QueryService queryService)
+    {
+        _driverService = driverService;
+        _queryService = queryService;
+    }
+
     /// <summary>
     /// Вывести всех водителей
     /// </summary>
@@ -19,10 +27,10 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="200">Запрос выполнен успешно, возвращает список водителей.</response>
     /// <response code="404">Водители не найдены.</response>
     [HttpGet]
-    public ActionResult<IEnumerable<Driver>> Get()
+    public async Task<ActionResult<IEnumerable<Driver>>> Get()
     {
-        var result = driverService.GetAll();
-        if (result == null) return NotFound("Водител не найдены.");
+        var result = await _driverService.GetAllAsync();
+        if (result == null) return NotFound("Водители не найдены.");
         return Ok(result);
     }
 
@@ -34,9 +42,9 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="200">Запрос выполнен успешно, возвращает водителя с указанным идентификатором.</response>
     /// <response code="404">Водитель с указанным идентификатором не найден.</response>
     [HttpGet("{id:int}")]
-    public ActionResult<Driver> Get(int id)
+    public async Task<ActionResult<Driver>> Get(int id)
     {
-        var result = driverService.GetById(id);
+        var result = await _driverService.GetByIdAsync(id);
         if (result == null) return NotFound($"Водитель с ID {id} не найден.");
         return Ok(result);
     }
@@ -49,10 +57,10 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="200">Водитель успешно добавлен.</response>
     /// <response code="400">Некорректные данные для создания водителя.</response>
     [HttpPost]
-    public ActionResult<Driver> Post(DriverCreateDTO driver)
+    public async Task<ActionResult<Driver>> Post(DriverCreateDto driver)
     {
         if (driver == null) return BadRequest("Данные водителя не могут быть пустыми.");
-        var result = driverService.Add(driver);
+        var result = await _driverService.AddAsync(driver);
         if (result == null) return BadRequest("Некорректные данные водителя.");
         return Ok(result);
     }
@@ -66,10 +74,10 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="400">Некорректные данные для обновления водителя.</response>
     /// <response code="404">Водитель с указанным идентификатором не найден.</response>
     [HttpPut]
-    public ActionResult<Driver> Put(DriverUpdateDTO driver)
+    public async Task<ActionResult> Put(DriverUpdateDto driver)
     {
         if (driver == null || driver.DriverId == 0) return BadRequest("Некорректные данные водителя.");
-        var success = driverService.Update(driver);
+        var success = await _driverService.UpdateAsync(driver);
         if (!success) return NotFound($"Водитель с ID {driver.DriverId} не найден.");
         return Ok("Водитель успешно обновлен.");
     }
@@ -82,9 +90,9 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="200">Водитель успешно удален.</response>
     /// <response code="404">Водитель с указанным идентификатором не найден.</response>
     [HttpDelete("{id:int}")]
-    public IActionResult DeleteDriver(int id)
+    public async Task<IActionResult> DeleteDriver(int id)
     {
-        var success = driverService.Delete(id);
+        var success = await _driverService.DeleteAsync(id);
         if (!success) return NotFound($"Водитель с ID {id} не найден.");
         return Ok("Водитель успешно удален.");
     }
@@ -99,10 +107,11 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="400">Некорректный период дат.</response>
     [HttpGet]
     [Route("drivers-in-period")]
-    public ActionResult<List<Driver>> GetDriversInPeriod(DateTime startDate, DateTime endDate)
+    public async Task<ActionResult<List<Driver>>> GetDriversInPeriod(DateTime startDate, DateTime endDate)
     {
         if (startDate > endDate) return BadRequest("Дата начала не может быть позже даты окончания.");
-        return Ok(queryService.GetDriversInPeriod(startDate, endDate));
+        var drivers = await _queryService.GetDriversInPeriodAsync(startDate, endDate);
+        return Ok(drivers);
     }
 
     /// <summary>
@@ -112,9 +121,10 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="200">Запрос выполнен успешно, возвращает топ водителей.</response>
     [HttpGet]
     [Route("top-drivers")]
-    public ActionResult<List<DriverTripCountDTO>> GetTopDriversByTripCount()
+    public async Task<ActionResult<List<DriverTripCountDto>>> GetTopDriversByTripCount()
     {
-        return Ok(queryService.GetTopDriversByTripCount());
+        var topDrivers = await _queryService.GetTopDriversByTripCountAsync();
+        return Ok(topDrivers);
     }
 
     /// <summary>
@@ -124,8 +134,9 @@ public class DriversController(DriversService driverService, QueryService queryS
     /// <response code="200">Запрос выполнен успешно, возвращает статистику поездок.</response>
     [HttpGet]
     [Route("driver-trip-stats")]
-    public ActionResult<List<DriverTripStatsDTO>> GetDriverTripStats()
+    public async Task<ActionResult<List<DriverTripStatsDto>>> GetDriverTripStats()
     {
-        return Ok(queryService.GetDriverTripStats());
+        var stats = await _queryService.GetDriverTripStatsAsync();
+        return Ok(stats);
     }
 }

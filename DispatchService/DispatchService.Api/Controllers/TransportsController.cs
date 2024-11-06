@@ -10,7 +10,7 @@ namespace DispatchService.Api.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class TransportsController(TransportsService transportService, QueryService queryService) : ControllerBase
+public class TransportsController(IEntityService<Transport, TransportCreateDto, TransportUpdateDto> transportService, QueryService queryService) : ControllerBase
 {
     /// <summary>
     /// Вывести все транспортные средства
@@ -19,10 +19,10 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="200">Запрос выполнен успешно, возвращает список транспортных средств.</response>
     /// <response code="404">Транспортные средства не найдены.</response>
     [HttpGet]
-    public ActionResult<IEnumerable<Transport>> Get()
+    public async Task<ActionResult<IEnumerable<Transport>>> Get()
     {
-        var result = transportService.GetAll();
-        if (result == null) return NotFound($"Транспортные средства не найдены.");
+        var result = await transportService.GetAllAsync();
+        if (result == null) return NotFound("Транспортные средства не найдены.");
         return Ok(result);
     }
 
@@ -34,9 +34,9 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="200">Запрос выполнен успешно, возвращает транспортное средство с указанным идентификатором.</response>
     /// <response code="404">Транспортное средство с указанным идентификатором не найдено.</response>
     [HttpGet("{id:int}")]
-    public ActionResult<Transport> Get(int id)
+    public async Task<ActionResult<Transport>> Get(int id)
     {
-        var result = transportService.GetById(id);
+        var result = await transportService.GetByIdAsync(id);
         if (result == null) return NotFound($"Транспортное средство с ID {id} не найдено.");
         return Ok(result);
     }
@@ -49,10 +49,10 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="200">Транспортное средство успешно добавлено.</response>
     /// <response code="400">Некорректные данные для создания транспортного средства.</response>
     [HttpPost]
-    public ActionResult<Transport> Post(TransportCreateDTO transport)
+    public async Task<ActionResult<Transport>> Post(TransportCreateDto transport)
     {
         if (transport == null) return BadRequest("Данные транспортного средства не могут быть пустыми.");
-        var result = transportService.Add(transport);
+        var result = await transportService.AddAsync(transport);
         if (result == null) return BadRequest("Некорректные данные транспортного средства.");
         return Ok(result);
     }
@@ -66,10 +66,10 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="400">Некорректные данные для обновления транспортного средства.</response>
     /// <response code="404">Транспортное средство с указанным идентификатором не найдено.</response>
     [HttpPut]
-    public ActionResult<Transport> Put(TransportUpdateDTO transport)
+    public async Task<ActionResult> Put(TransportUpdateDto transport)
     {
         if (transport == null || transport.TransportId == 0) return BadRequest("Некорректные данные транспортного средства.");
-        var success = transportService.Update(transport);
+        var success = await transportService.UpdateAsync(transport);
         if (!success) return NotFound($"Транспортное средство с ID {transport.TransportId} не найдено.");
         return Ok("Транспортное средство успешно обновлено.");
     }
@@ -82,9 +82,9 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="200">Транспортное средство успешно удалено.</response>
     /// <response code="404">Транспортное средство с указанным идентификатором не найдено.</response>
     [HttpDelete("{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var success = transportService.Delete(id);
+        var success = await transportService.DeleteAsync(id);
         if (!success) return NotFound($"Транспортное средство с ID {id} не найдено.");
         return Ok("Транспортное средство успешно удалено.");
     }
@@ -96,9 +96,10 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="200">Запрос выполнен успешно, возвращает суммарное время поездок ТС.</response>
     [HttpGet]
     [Route("total-trip-times")]
-    public ActionResult<List<TotalTripTimesDTO>> GetTotalTripTimesByTransport()
+    public async Task<ActionResult<List<TotalTripTimesDto>>> GetTotalTripTimesByTransport()
     {
-        return Ok(queryService.GetTotalTripTimesByTransport());
+        var result = await queryService.GetTotalTripTimesByTransportAsync();
+        return Ok(result);
     }
 
     /// <summary>
@@ -111,9 +112,10 @@ public class TransportsController(TransportsService transportService, QueryServi
     /// <response code="400">Некорректные даты периода.</response>
     [HttpGet]
     [Route("top-transports")]
-    public ActionResult<List<TransportTripCountDTO>> GetTopTransportsByTripCount(DateTime startDate, DateTime endDate)
+    public async Task<ActionResult<List<TransportTripCountDto>>> GetTopTransportsByTripCount(DateTime startDate, DateTime endDate)
     {
         if (startDate > endDate) return BadRequest("Дата начала не может быть позже даты окончания.");
-        return Ok(queryService.GetTopTransportsByTripCount(startDate, endDate));
+        var result = await queryService.GetTopTransportsByTripCountAsync(startDate, endDate);
+        return Ok(result);
     }
 }

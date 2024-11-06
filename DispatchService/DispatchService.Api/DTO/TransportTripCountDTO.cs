@@ -5,7 +5,7 @@ namespace DispatchService.Api.DTO;
 /// <summary>
 /// DTO для хранения информации о транспортном средстве и количестве его поездок.
 /// </summary>
-public class TransportTripCountDTO
+public class TransportTripCountDto
 {
     /// <summary>
     /// Получает или устанавливает транспортное средство.

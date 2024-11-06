@@ -4,7 +4,7 @@ namespace DispatchService.Api.DTO;
 /// <summary>
 /// DTO создания транспорта
 /// </summary>
-public class TransportCreateDTO
+public class TransportCreateDto
 {
     /// <summary>
     /// Госномер автомобиля

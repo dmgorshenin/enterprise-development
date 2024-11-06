@@ -4,7 +4,7 @@ namespace DispatchService.Api.DTO;
 /// <summary>
 /// DTO для обновления транспорта
 /// </summary>
-public class TransportUpdateDTO
+public class TransportUpdateDto
 {
     /// <summary>
     /// Идентификатор транспорта

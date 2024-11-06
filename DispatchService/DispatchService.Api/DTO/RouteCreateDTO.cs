@@ -3,7 +3,7 @@
 /// <summary>
 /// 
 /// </summary>
-public class RouteCreateDTO
+public class RouteCreateDto
 {
     /// <summary>
     /// Номер маршрута

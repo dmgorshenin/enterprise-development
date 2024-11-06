@@ -3,7 +3,7 @@
 /// <summary>
 /// DTO для обновления маршрута
 /// </summary>
-public class RouteUpdateDTO
+public class RouteUpdateDto
 {
     /// <summary>
     /// Идентификатор маршрута

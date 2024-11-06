@@ -3,7 +3,7 @@
 /// <summary>
 /// DTO создания водителя
 /// </summary>
-public class DriverCreateDTO
+public class DriverCreateDto
 {
     /// <summary>
     /// ФИО

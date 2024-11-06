@@ -3,7 +3,7 @@
 /// <summary>
 /// DTO для хранения суммарного времени поездок транспортного средства.
 /// </summary>
-public class TotalTripTimesDTO
+public class TotalTripTimesDto
 {
     /// <summary>
     /// Получает или устанавливает название модели транспортного средства.
