@@ -8,27 +8,20 @@ namespace DispatchService.Api.Services;
 /// <summary>
 /// Сервис для управления транспортными средствами.
 /// </summary>
-public class TransportsService : IEntityService<Transport, TransportCreateDto, TransportUpdateDto>
+public class TransportsService(DispatchServiceDbContext dbContext) : IEntityService<Transport, TransportCreateDto, TransportUpdateDto>
 {
-    private readonly DispatchServiceDbContext _dbContext;
-
-    public TransportsService(DispatchServiceDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     /// <summary>
     /// Получает список всех транспортных средств.
     /// </summary>
     /// <returns>Список объектов <see cref="Transport"/>.</returns>
-    public async Task<IEnumerable<Transport>> GetAllAsync() => await _dbContext.Transport.ToListAsync();
+    public async Task<IEnumerable<Transport>> GetAllAsync() => await dbContext.Transport.ToListAsync();
 
     /// <summary>
     /// Получает транспортное средство по его идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор транспортного средства.</param>
     /// <returns>Объект <see cref="Transport"/> или null, если транспортное средство не найдено.</returns>
-    public async Task<Transport?> GetByIdAsync(int id) => await _dbContext.Transport.FirstOrDefaultAsync(d => d.Id == id);
+    public async Task<Transport?> GetByIdAsync(int id) => await dbContext.Transport.FirstOrDefaultAsync(d => d.Id == id);
 
     /// <summary>
     /// Добавляет новое транспортное средство.
@@ -47,8 +40,8 @@ public class TransportsService : IEntityService<Transport, TransportCreateDto, T
             Type = newTransport.Type,
             YearOfManufacture = newTransport.YearOfManufacture
         };
-        await _dbContext.Transport.AddAsync(transport);
-        await _dbContext.SaveChangesAsync();
+        await dbContext.Transport.AddAsync(transport);
+        await dbContext.SaveChangesAsync();
         return transport;
     }
 
@@ -67,7 +60,7 @@ public class TransportsService : IEntityService<Transport, TransportCreateDto, T
         transport.LicensePlate = updateTransport.LicensePlate;
         transport.ModelName = updateTransport.ModelName;
         transport.Type = updateTransport.Type;
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         return true;
     }
 
@@ -80,8 +73,8 @@ public class TransportsService : IEntityService<Transport, TransportCreateDto, T
     {
         var transport = await GetByIdAsync(id);
         if (transport == null) return false;
-        _dbContext.Transport.Remove(transport);
-        await _dbContext.SaveChangesAsync();
+        dbContext.Transport.Remove(transport);
+        await dbContext.SaveChangesAsync();
         return true;
     }
 }

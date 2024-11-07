@@ -8,25 +8,19 @@ namespace DispatchService.Api.Services;
 /// <summary>
 /// Сервис запросов
 /// </summary>
-public class QueryService
+public class QueryService(IEntityService<Route, RouteCreateDto, RouteUpdateDto> routesService)
 {
-    private readonly IEntityService<Route, RouteCreateDto, RouteUpdateDto> _routesService;
-
-    public QueryService(IEntityService<Route, RouteCreateDto, RouteUpdateDto> routesService) => _routesService = routesService;
-
     /// <summary>
     /// Получить список водителей, которые совершили поездки в указанный период.
     /// </summary>
     public async Task<List<Driver>> GetDriversInPeriodAsync(DateTime startDate, DateTime endDate)
     {
-        var routes = await _routesService.GetAllAsync();
-        return await Task.Run(() =>
-            routes.Where(r => r.StartTime >= startDate && r.EndTime <= endDate)
+        var routes = await routesService.GetAllAsync();
+        return routes.Where(r => r.StartTime >= startDate && r.EndTime <= endDate)
                   .Select(r => r.AssignedDriver)
                   .Distinct()
                   .OrderBy(d => d.FullName)
-                  .ToList()
-        );
+                  .ToList();
     }
 
     /// <summary>
@@ -34,16 +28,14 @@ public class QueryService
     /// </summary>
     public async Task<List<TotalTripTimesDto>> GetTotalTripTimesByTransportAsync()
     {
-        var routes = await _routesService.GetAllAsync();
-        return await Task.Run(() =>
-            routes.GroupBy(r => r.AssignedTransport.ModelName)
+        var routes = await routesService.GetAllAsync();
+        return routes.GroupBy(r => r.AssignedTransport.ModelName)
                   .Select(g => new TotalTripTimesDto
                   {
                       ModelName = g.Key,
                       TotalTripTime = TimeSpan.FromHours(g.Sum(r => (r.EndTime - r.StartTime).TotalHours))
                   })
-                  .ToList()
-        );
+                  .ToList();
     }
 
     /// <summary>
@@ -51,9 +43,8 @@ public class QueryService
     /// </summary>
     public async Task<List<DriverTripCountDto>> GetTopDriversByTripCountAsync()
     {
-        var routes = await _routesService.GetAllAsync();
-        return await Task.Run(() =>
-            routes.GroupBy(r => r.AssignedDriver.Id)
+        var routes = await routesService.GetAllAsync();
+        return routes.GroupBy(r => r.AssignedDriver.Id)
                   .Select(g => new DriverTripCountDto
                   {
                       Driver = g.First().AssignedDriver,
@@ -61,8 +52,7 @@ public class QueryService
                   })
                   .OrderByDescending(g => g.TripCount)
                   .Take(5)
-                  .ToList()
-        );
+                  .ToList();
     }
 
     /// <summary>
@@ -70,9 +60,8 @@ public class QueryService
     /// </summary>
     public async Task<List<DriverTripStatsDto>> GetDriverTripStatsAsync()
     {
-        var routes = await _routesService.GetAllAsync();
-        return await Task.Run(() =>
-            routes.GroupBy(r => r.AssignedDriver)
+        var routes = await routesService.GetAllAsync();
+        return routes.GroupBy(r => r.AssignedDriver)
                   .Select(g => new DriverTripStatsDto
                   {
                       Driver = g.Key,
@@ -80,8 +69,7 @@ public class QueryService
                       AvgTripTime = g.Average(r => (r.EndTime - r.StartTime).TotalHours),
                       MaxTripTime = g.Max(r => (r.EndTime - r.StartTime).TotalHours)
                   })
-                  .ToList()
-        );
+                  .ToList();
     }
 
     /// <summary>
@@ -89,9 +77,8 @@ public class QueryService
     /// </summary>
     public async Task<List<TransportTripCountDto>> GetTopTransportsByTripCountAsync(DateTime startDate, DateTime endDate)
     {
-        var routes = await _routesService.GetAllAsync();
-        return await Task.Run(() =>
-            routes.Where(r => r.StartTime >= startDate && r.EndTime <= endDate)
+        var routes = await routesService.GetAllAsync();
+        return routes.Where(r => r.StartTime >= startDate && r.EndTime <= endDate)
                   .GroupBy(r => r.AssignedTransport)
                   .Select(g => new TransportTripCountDto
                   {
@@ -100,7 +87,6 @@ public class QueryService
                   })
                   .OrderByDescending(g => g.TripCount)
                   .Take(5)
-                  .ToList()
-        );
+                  .ToList();
     }
 }

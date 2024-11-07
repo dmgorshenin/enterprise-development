@@ -10,16 +10,8 @@ namespace DispatchService.Api.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class DriversController : ControllerBase
+public class DriversController(IEntityService<Driver, DriverCreateDto, DriverUpdateDto> driverService, QueryService queryService) : ControllerBase
 {
-    private readonly IEntityService<Driver, DriverCreateDto, DriverUpdateDto> _driverService;
-    private readonly QueryService _queryService;
-    public DriversController(IEntityService<Driver, DriverCreateDto, DriverUpdateDto> driverService, QueryService queryService)
-    {
-        _driverService = driverService;
-        _queryService = queryService;
-    }
-
     /// <summary>
     /// Вывести всех водителей
     /// </summary>
@@ -29,7 +21,7 @@ public class DriversController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Driver>>> Get()
     {
-        var result = await _driverService.GetAllAsync();
+        var result = await driverService.GetAllAsync();
         if (result == null) return NotFound("Водители не найдены.");
         return Ok(result);
     }
@@ -44,7 +36,7 @@ public class DriversController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Driver>> Get(int id)
     {
-        var result = await _driverService.GetByIdAsync(id);
+        var result = await driverService.GetByIdAsync(id);
         if (result == null) return NotFound($"Водитель с ID {id} не найден.");
         return Ok(result);
     }
@@ -60,7 +52,7 @@ public class DriversController : ControllerBase
     public async Task<ActionResult<Driver>> Post(DriverCreateDto driver)
     {
         if (driver == null) return BadRequest("Данные водителя не могут быть пустыми.");
-        var result = await _driverService.AddAsync(driver);
+        var result = await driverService.AddAsync(driver);
         if (result == null) return BadRequest("Некорректные данные водителя.");
         return Ok(result);
     }
@@ -77,7 +69,7 @@ public class DriversController : ControllerBase
     public async Task<ActionResult> Put(DriverUpdateDto driver)
     {
         if (driver == null || driver.DriverId == 0) return BadRequest("Некорректные данные водителя.");
-        var success = await _driverService.UpdateAsync(driver);
+        var success = await driverService.UpdateAsync(driver);
         if (!success) return NotFound($"Водитель с ID {driver.DriverId} не найден.");
         return Ok("Водитель успешно обновлен.");
     }
@@ -92,7 +84,7 @@ public class DriversController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteDriver(int id)
     {
-        var success = await _driverService.DeleteAsync(id);
+        var success = await driverService.DeleteAsync(id);
         if (!success) return NotFound($"Водитель с ID {id} не найден.");
         return Ok("Водитель успешно удален.");
     }
@@ -110,7 +102,7 @@ public class DriversController : ControllerBase
     public async Task<ActionResult<List<Driver>>> GetDriversInPeriod(DateTime startDate, DateTime endDate)
     {
         if (startDate > endDate) return BadRequest("Дата начала не может быть позже даты окончания.");
-        var drivers = await _queryService.GetDriversInPeriodAsync(startDate, endDate);
+        var drivers = await queryService.GetDriversInPeriodAsync(startDate, endDate);
         return Ok(drivers);
     }
 
@@ -123,7 +115,7 @@ public class DriversController : ControllerBase
     [Route("top-drivers")]
     public async Task<ActionResult<List<DriverTripCountDto>>> GetTopDriversByTripCount()
     {
-        var topDrivers = await _queryService.GetTopDriversByTripCountAsync();
+        var topDrivers = await queryService.GetTopDriversByTripCountAsync();
         return Ok(topDrivers);
     }
 
@@ -136,7 +128,7 @@ public class DriversController : ControllerBase
     [Route("driver-trip-stats")]
     public async Task<ActionResult<List<DriverTripStatsDto>>> GetDriverTripStats()
     {
-        var stats = await _queryService.GetDriverTripStatsAsync();
+        var stats = await queryService.GetDriverTripStatsAsync();
         return Ok(stats);
     }
 }

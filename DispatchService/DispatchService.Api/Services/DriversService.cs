@@ -8,27 +8,20 @@ namespace DispatchService.Api.Services;
 /// <summary>
 /// Сервис для управления водителями.
 /// </summary>
-public class DriversService : IEntityService<Driver, DriverCreateDto, DriverUpdateDto>
+public class DriversService(DispatchServiceDbContext dbContext) : IEntityService<Driver, DriverCreateDto, DriverUpdateDto>
 {
-    private readonly DispatchServiceDbContext _dbContext;
-
-    public DriversService(DispatchServiceDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     /// <summary>
     /// Получает всех водителей.
     /// </summary>
     /// <returns>Список всех водителей.</returns>
-    public async Task<IEnumerable<Driver>> GetAllAsync() => await _dbContext.Driver.ToListAsync();
+    public async Task<IEnumerable<Driver>> GetAllAsync() => await dbContext.Driver.ToListAsync();
 
     /// <summary>
     /// Получает водителя по ID.
     /// </summary>
     /// <param name="id">ID водителя.</param>
     /// <returns>Водитель с указанным ID или null, если не найден.</returns>
-    public async Task<Driver?> GetByIdAsync(int id) => await _dbContext.Driver.FirstOrDefaultAsync(d => d.Id == id);
+    public async Task<Driver?> GetByIdAsync(int id) => await dbContext.Driver.FirstOrDefaultAsync(d => d.Id == id);
 
     /// <summary>
     /// Добавляет нового водителя.
@@ -47,8 +40,8 @@ public class DriversService : IEntityService<Driver, DriverCreateDto, DriverUpda
             PhoneNumber = newDriver.PhoneNumber
         };
 
-        await _dbContext.Driver.AddAsync(driver);
-        await _dbContext.SaveChangesAsync();
+        await dbContext.Driver.AddAsync(driver);
+        await dbContext.SaveChangesAsync();
         return driver;
     }
 
@@ -69,7 +62,7 @@ public class DriversService : IEntityService<Driver, DriverCreateDto, DriverUpda
         driver.Address = updateDriver.Address;
         driver.PhoneNumber = updateDriver.PhoneNumber;
 
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         return true;
     }
 
@@ -84,8 +77,8 @@ public class DriversService : IEntityService<Driver, DriverCreateDto, DriverUpda
         if (driver == null)
             return false;
 
-        _dbContext.Driver.Remove(driver);
-        await _dbContext.SaveChangesAsync();
+        dbContext.Driver.Remove(driver);
+        await dbContext.SaveChangesAsync();
         return true;
     }
 }
