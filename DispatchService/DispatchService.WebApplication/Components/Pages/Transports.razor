@@ -1,0 +1,186 @@
+﻿@page "/transports"
+@inject HttpClient Http;
+
+<PageTitle>Transports</PageTitle>
+
+<h1>Transports Management</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>License Plate</th>
+            <th>Vehicle Type</th>
+            <th>Model Name</th>
+            <th>Is Low Floor</th>
+            <th>Maximum Capacity</th>
+            <th>Year Of Manufacture</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (_transports == null || !_transports.Any())
+        {
+            <tr>
+                <td colspan="8" class="text-center">No transports found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var transport in _transports)
+            {
+                <tr>
+                    <td>@transport.Id</td>
+                    <td>@transport.LicensePlate</td>
+                    <td>@transport.Type.ToString()</td>
+                    <td>@transport.ModelName</td>
+                    <td>@(transport.IsLowFloor ? "Yes" : "No")</td>
+                    <td>@transport.MaxCapacity</td>
+                    <td>@transport.YearOfManufacture</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="@(() => ShowUpdForm(transport.Id))">Edit</button>
+                        <button class="btn btn-danger" @onclick="@(() => DeleteTransport(transport.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<h3>@(flagAdd ? "Add New Transport" : "Edit Transport")</h3>
+
+<EditForm Model="@currentTransport" OnValidSubmit="@HandleFormSubmit">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="licensePlate" class="form-label">License Plate</label>
+        <InputText id="licensePlate" class="form-control" @bind-Value="currentTransport.LicensePlate" />
+    </div>
+    <div class="mb-3">
+        <label for="type" class="form-label">Vehicle Type</label>
+        <InputSelect id="type" class="form-control" @bind-Value="currentTransport.Type">
+            @foreach (var type in Enum.GetValues<VehicleType>())
+            {
+                <option value="@type">@type</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="mb-3">
+        <label for="modelName" class="form-label">Model Name</label>
+        <InputText id="modelName" class="form-control" @bind-Value="currentTransport.ModelName" />
+    </div>
+    <div class="mb-3">
+        <label for="isLowFloor" class="form-label">Is Low Floor</label>
+        <InputCheckbox id="isLowFloor" class="form-check-input" @bind-Value="currentTransport.IsLowFloor" />
+    </div>
+    <div class="mb-3">
+        <label for="maxCapacity" class="form-label">Maximum Capacity</label>
+        <InputNumber id="maxCapacity" class="form-control" @bind-Value="currentTransport.MaxCapacity" />
+    </div>
+    <div class="mb-3">
+        <label for="yearOfManufacture" class="form-label">Year Of Manufacture</label>
+        <InputNumber id="yearOfManufacture" class="form-control" @bind-Value="currentTransport.YearOfManufacture" />
+    </div>
+    <button type="submit" class="btn btn-success">@("Save")</button>
+    <button type="button" class="btn btn-secondary" @onclick="ClearForm">Cancel</button>
+</EditForm>
+
+@code {
+    private List<Transport> _transports = new();
+    private Transport currentTransport = new() { Id = 0, LicensePlate = "", Type = VehicleType.Trolleybus, ModelName = "", IsLowFloor = false, MaxCapacity = 0, YearOfManufacture = 0 };
+    private string transportUrl = "api/Transports";
+    private string routeUrl = "api/Routes";
+    private bool flagAdd = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTransports();
+    }
+
+    private async Task LoadTransports()
+    {
+        try
+        {
+            _transports = await Http.GetFromJsonAsync<List<Transport>>(transportUrl) ?? new List<Transport>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading transports: {ex.Message}");
+        }
+    }
+
+    private async Task AddNewTransport()
+    {
+        await Http.PostAsJsonAsync(transportUrl, currentTransport);
+        ClearForm();
+        await LoadTransports();
+    }
+
+    private async Task DeleteTransport(int transportId)
+    {
+        await Http.DeleteAsync($"{transportUrl}/{transportId}");
+        await LoadTransports();
+
+        var routes = await Http.GetFromJsonAsync<List<Route>>(routeUrl);
+        if (routes != null)
+        {
+            routes = routes.Select(d => d).Where(d => d.AssignedTransport.Id == transportId).ToList();
+            foreach (var route in routes)
+            {
+                await Http.DeleteAsync($"api/Routes/{route.Id}");
+            }
+        }
+    }
+
+    private async Task UpdateTransport()
+    {
+        var updateTransport = new TransportUpdateDto
+            {
+                TransportId = currentTransport.Id,
+                LicensePlate = currentTransport.LicensePlate,
+                ModelName = currentTransport.ModelName,
+                IsLowFloor = currentTransport.IsLowFloor,
+                YearOfManufacture = currentTransport.YearOfManufacture,
+                Type = currentTransport.Type,
+                MaxCapacity = currentTransport.MaxCapacity
+            };
+        var response = await Http.PutAsJsonAsync(transportUrl, updateTransport);
+        if (response.IsSuccessStatusCode)
+        {
+            ClearForm();
+            await LoadTransports();
+        }
+        else
+        {
+            Console.WriteLine($"Ошибка обновления: {response.StatusCode}");
+        }
+    }
+
+    private async Task ShowUpdForm(int transportId)
+    {
+        flagAdd = false;
+        var response = await Http.GetFromJsonAsync<Transport>($"{transportUrl}/{transportId}");
+        if (response != null)
+        {
+            currentTransport = response;
+        }
+    }
+
+    private void ClearForm()
+    {
+        flagAdd = true;
+        currentTransport = new Transport() { Id = 0, LicensePlate = "", Type = VehicleType.Trolleybus, ModelName = "", IsLowFloor = false, MaxCapacity = 0, YearOfManufacture = 0 };
+    }
+
+    private async Task HandleFormSubmit()
+    {
+        if (flagAdd)
+        {
+            await AddNewTransport();
+        }
+        else
+        {
+            await UpdateTransport();
+        }
+    }
+}

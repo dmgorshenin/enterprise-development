@@ -29,13 +29,16 @@ public class QueryService(IEntityService<Route, RouteCreateDto, RouteUpdateDto> 
     public async Task<List<TotalTripTimesDto>> GetTotalTripTimesByTransportAsync()
     {
         var routes = await routesService.GetAllAsync();
-        return routes.GroupBy(r => r.AssignedTransport.ModelName)
-                  .Select(g => new TotalTripTimesDto
-                  {
-                      ModelName = g.Key,
-                      TotalTripTime = TimeSpan.FromHours(g.Sum(r => (r.EndTime - r.StartTime).TotalHours))
-                  })
-                  .ToList();
+        return routes.Where(r => r.AssignedTransport != null)
+                .GroupBy(r => new { r.AssignedTransport.ModelName, r.AssignedTransport.Type })
+                .Select(g => new TotalTripTimesDto
+                {
+                    ModelName = g.Key.ModelName,
+                    Type = g.Key.Type,
+                    TotalTripTime = TimeSpan.FromHours(g.Sum(r => (r.EndTime - r.StartTime).TotalHours))
+                })
+                .OrderByDescending(dto => dto.TotalTripTime)
+                .ToList();
     }
 
     /// <summary>

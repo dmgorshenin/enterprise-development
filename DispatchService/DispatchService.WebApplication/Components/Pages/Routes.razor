@@ -1,0 +1,264 @@
+﻿@page "/routes"
+@inject HttpClient Http;
+
+<PageTitle>Routes</PageTitle>
+
+<h1>Routes Management</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Route Number</th>
+            <th>Assigned Transport</th>
+            <th>Assigned Driver</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (_routes == null || !_routes.Any())
+        {
+            <tr>
+                <td colspan="7" class="text-center">No routes found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var route in _routes)
+            {
+                <tr>
+                    <td>@route.Id</td>
+                    <td>@route.RouteNumber</td>
+                    <td>@route.AssignedTransport.ModelName (@route.AssignedTransport.LicensePlate)</td>
+                    <td>@route.AssignedDriver.FullName (@route.AssignedDriver.PhoneNumber)</td>
+                    <td>@route.StartTime.ToString("g")</td>
+                    <td>@route.EndTime.ToString("g")</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="@(() => ShowUpdForm(route.Id))">Edit</button>
+                        <button class="btn btn-danger" @onclick="@(() => DeleteRoute(route.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<h3>@(flagAdd ? "Add New Route" : "Edit Route")</h3>
+
+<EditForm Model="@currentRoute" OnValidSubmit=@HandleFormSubmit>
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="routeNumber" class="form-label">Route Number</label>
+        <InputText id="routeNumber" class="form-control" @bind-Value="currentRoute.RouteNumber" />
+    </div>
+    <div class="mb-3">
+        <label for="assignedTransport" class="form-label">Assigned Transport</label>
+        <InputSelect id="assignedTransport" class="form-control" @bind-Value="currentRoute.AssignedTransport.Id">
+            @foreach (var transport in _transports)
+            {
+                <option value="@transport.Id">@transport.ModelName (@transport.LicensePlate)</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="mb-3">
+        <label for="assignedDriver" class="form-label">Assigned Driver</label>
+        <InputSelect id="assignedDriver" class="form-control" @bind-Value="currentRoute.AssignedDriver.Id">
+            @foreach (var driver in _drivers)
+            {
+                <option value="@driver.Id">@driver.FullName (@driver.PhoneNumber)</option>
+            }
+        </InputSelect>
+    </div>
+	<div class="mb-3">
+        <MudDatePicker id="startDate" class="form-control" PickerVariant="PickerVariant.Dialog" Label="Start Date" @bind-Date="_startDate" Editable="true" />
+    </div>
+    <div class="mb-3">
+        <MudTimePicker id="startDate" class="form-control" PickerVariant="PickerVariant.Dialog" Label="Start Time" @bind-Time="_startTime" Editable="true" />
+    </div>
+    <div class="mb-3">
+        <MudDatePicker id="endDate" class="form-control" PickerVariant="PickerVariant.Dialog" Label="End Date" @bind-Date="_endDate" Editable="true" />
+    </div>
+    <div class="mb-3">
+        <MudTimePicker id="endDate" class="form-control" PickerVariant="PickerVariant.Dialog" Label="End Time" @bind-Time="_endTime" Editable="true" />
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="ClearForm">Cancel</button>
+</EditForm>
+
+@code {
+    private List<Route> _routes = new();
+    private List<Transport> _transports = new();
+    private List<Driver> _drivers = new();
+    private DateTime? _startDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+    private DateTime? _endDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+    private TimeSpan? _startTime = TimeSpan.Zero;
+    private TimeSpan? _endTime = TimeSpan.Zero;
+    private Route currentRoute = new()
+        {
+            Id = 0,
+            RouteNumber = "",
+            AssignedTransport = new Transport() { Id = 0, LicensePlate = "", Type = VehicleType.Trolleybus, ModelName = "", IsLowFloor = false, MaxCapacity = 0, YearOfManufacture = 0 },
+            AssignedDriver = new Driver() { Id = 0, FullName = "", DriverLicense = "", Address = "", Passport = "", PhoneNumber = "" },
+            StartTime = DateTime.Now,
+            EndTime = DateTime.Now
+        };
+    private string routeUrl = "api/Routes";
+    private string driverUrl = "api/Drivers";
+    private string transportUrl = "api/Transports";
+    private bool flagAdd = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoutes();
+        await LoadTransports();
+        await LoadDrivers();
+    }
+
+    private async Task LoadRoutes()
+    {
+        try
+        {
+            _routes = await Http.GetFromJsonAsync<List<Route>>(routeUrl) ?? new List<Route>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading routes: {ex.Message}");
+        }
+    }
+
+    private async Task LoadTransports()
+    {
+        try
+        {
+            _transports = await Http.GetFromJsonAsync<List<Transport>>(transportUrl) ?? new List<Transport>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading transports: {ex.Message}");
+        }
+    }
+
+    private async Task LoadDrivers()
+    {
+        try
+        {
+            _drivers = await Http.GetFromJsonAsync<List<Driver>>(driverUrl) ?? new List<Driver>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading drivers: {ex.Message}");
+        }
+    }
+
+    private async Task AddNewRoute()
+    {
+        var createRoute = new RouteCreateDto
+            {
+                RouteNumber = currentRoute.RouteNumber,
+                AssignedDriverId = currentRoute.AssignedDriver.Id,
+                AssignedTransportId = currentRoute.AssignedTransport.Id,
+                StartTime = currentRoute.StartTime,
+                EndTime = currentRoute.EndTime
+            };
+        var response = await Http.PostAsJsonAsync(routeUrl, createRoute);
+        if (response.IsSuccessStatusCode)
+        {
+            ClearForm();
+            await LoadRoutes();
+        }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Error creating route: {response.StatusCode}, Details: {errorContent}");
+        }
+    }
+
+    private async Task UpdateRoute()
+    {
+        var updateRoute = new RouteUpdateDto
+        {
+            RouteId = currentRoute.Id,
+            RouteNumber = currentRoute.RouteNumber,
+            AssignedDriverId = currentRoute.AssignedDriver.Id,
+            AssignedTransportId = currentRoute.AssignedTransport.Id,
+            StartTime = currentRoute.StartTime,
+            EndTime = currentRoute.EndTime
+        };
+        var response = await Http.PutAsJsonAsync(routeUrl, updateRoute);
+        if (response.IsSuccessStatusCode)
+        {
+            ClearForm();
+            await LoadRoutes();
+        }
+        else
+        {
+            Console.WriteLine($"Error updating route: {response.StatusCode}");
+        }
+    }
+
+    private async Task DeleteRoute(int routeId)
+    {
+        await Http.DeleteAsync($"{routeUrl}/{routeId}");
+        await LoadRoutes();
+    }
+
+    private async Task ShowUpdForm(int routeId)
+    {
+        flagAdd = false;
+        var route = await Http.GetFromJsonAsync<Route>($"{routeUrl}/{routeId}");
+        if (route != null)
+        {
+            currentRoute = route;
+            _startDate = currentRoute.StartTime.Date;
+            _startTime = currentRoute.StartTime.TimeOfDay;
+            _endDate = currentRoute.EndTime.Date;
+            _endTime = currentRoute.EndTime.TimeOfDay;
+        }
+    }
+
+    private void ClearForm()
+    {
+        flagAdd = true;
+        currentRoute = new Route
+            {
+                Id = 0,
+                RouteNumber = "",
+                AssignedTransport = new Transport() { Id = 0, LicensePlate = "", Type = VehicleType.Trolleybus, ModelName = "", IsLowFloor = false, MaxCapacity = 0, YearOfManufacture = 0 },
+                AssignedDriver = new Driver() { Id = 0, FullName = "", DriverLicense = "", Address = "", Passport = "", PhoneNumber = "" },
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now
+            };
+        _endDate = DateTime.Today;
+        _startDate = DateTime.Today;
+        _endTime = TimeSpan.Zero;
+        _startTime = TimeSpan.Zero;
+    }
+
+    private async Task HandleFormSubmit()
+    {
+        CombineDateTime();
+        if (flagAdd)
+        {
+            await AddNewRoute();
+        }
+        else
+        {
+            await UpdateRoute();
+        }
+    }
+
+    private void CombineDateTime()
+    {
+        if (_startDate.HasValue && _startTime.HasValue)
+        {
+            currentRoute.StartTime = _startDate.Value.Date + _startTime.Value;
+        }
+        if (_endDate.HasValue && _endTime.HasValue)
+        {
+            currentRoute.EndTime = _endDate.Value.Date + _endTime.Value;
+        }
+    }
+}
+

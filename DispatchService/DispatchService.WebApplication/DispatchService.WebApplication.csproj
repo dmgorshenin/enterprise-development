@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Components\Pages\Queries.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Components\Pages\Queries.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazorise" Version="1.6.2" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="1.6.2" />
+    <PackageReference Include="Blazorise.Bootstrap5" Version="1.6.2" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.6.2" />
+    <PackageReference Include="Blazorise.Icons.Material" Version="1.6.2" />
+    <PackageReference Include="Blazorise.Material" Version="1.6.2" />
+    <PackageReference Include="MudBlazor" Version="7.15.0" />
+    <PackageReference Include="MudBlazor.FontIcons.MaterialSymbols" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DispatchService.Api\DispatchService.Api.csproj" />
+    <ProjectReference Include="..\DispatchService.Model\DispatchService.Model.csproj" />
+  </ItemGroup>
+
+</Project>

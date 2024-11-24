@@ -9,7 +9,7 @@ using Route = DispatchService.Model.Entities.Route;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<DispatchServiceDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddEndpointsApiExplorer();

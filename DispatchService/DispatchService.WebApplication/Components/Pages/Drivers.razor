@@ -1,0 +1,173 @@
+﻿@page "/"
+@inject HttpClient Http
+
+<PageTitle>Drivers</PageTitle>
+
+<h1>Drivers Management</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>License</th>
+            <th>Passport</th>
+            <th>Address</th>
+            <th>Phone Number</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (_drivers == null || !_drivers.Any())
+        {
+            <tr>
+                <td colspan="6" class="text-center">No drivers found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var driver in _drivers)
+            {
+                <tr>
+                    <td>@driver.Id</td>
+                    <td>@driver.FullName</td>
+                    <td>@driver.Passport</td>
+                    <td>@driver.DriverLicense</td>
+                    <td>@driver.Address</td>
+                    <td>@driver.PhoneNumber</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="@(() => ShowUpdForm(driver.Id))">Edit</button>
+                        <button class="btn btn-danger" @onclick="@(() => DeleteDriver(driver.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<h3>@(flagAdd ? "Add New Driver" : "Edit Driver")</h3>
+
+<EditForm Model="@currentDriver" OnValidSubmit=@HandleFormSubmit>
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="fullName" class="form-label">Full Name</label>
+        <InputText id="fullName" class="form-control" @bind-Value="currentDriver.FullName" />
+    </div>
+    <div class="mb-3">
+        <label for="driverLicense" class="form-label">Driver License</label>
+        <InputText id="driverLicense" class="form-control" @bind-Value="currentDriver.DriverLicense" />
+	</div>
+    <div class="mb-3">
+		<label for="passport" class="form-label">Passport</label>
+		<InputText id="passport" class="form-control" @bind-Value="currentDriver.Passport" />
+	</div>
+    <div class="mb-3">
+        <label for="address" class="form-label">Address</label>
+        <InputText id="address" class="form-control" @bind-Value="currentDriver.Address" />
+    </div>
+    <div class="mb-3">
+        <label for="phoneNumber" class="form-label">Phone Number</label>
+        <InputText id="phoneNumber" class="form-control" @bind-Value="currentDriver.PhoneNumber" />
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="ClearForm">Cancel</button>
+</EditForm>
+
+@code {
+    private List<Driver> _drivers = new();
+    private Driver currentDriver = new() { Id = 0, FullName = "", DriverLicense = "", Address = "", Passport = "", PhoneNumber = "" };
+    private string driverUrl = "api/Drivers";
+    private string routeUrl = "api/Routes";
+    private bool flagAdd = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDrivers();
+    }
+
+    private async Task LoadDrivers()
+    {
+        try
+        {
+            _drivers = await Http.GetFromJsonAsync<List<Driver>>(driverUrl) ?? new List<Driver>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading drivers: {ex.Message}");
+        }
+    }
+
+    private async Task AddNewDriver()
+    {
+        await Http.PostAsJsonAsync(driverUrl, currentDriver);
+        ClearForm();
+        await LoadDrivers();
+    }
+
+    private async Task DeleteDriver(int driverId)
+    {
+        await Http.DeleteAsync($"{driverUrl}/{driverId}");
+        await LoadDrivers();
+
+        var routes = await Http.GetFromJsonAsync<List<Route>>(routeUrl);
+        if (routes != null)
+        {
+            routes = routes.Select(d => d).Where(d => d.AssignedDriver.Id == driverId).ToList();
+            foreach (var route in routes)
+            {
+                await Http.DeleteAsync($"api/Routes/{route.Id}");
+            }
+        }
+    }
+
+    private async Task UpdateDriver()
+    {
+        var updateDriver = new DriverUpdateDto {
+            DriverId = currentDriver.Id, 
+            Address = currentDriver.Address, 
+            DriverLicense = currentDriver.DriverLicense, 
+            FullName = currentDriver.FullName, 
+            Passport = currentDriver.Passport, 
+            PhoneNumber = currentDriver.PhoneNumber 
+        };
+        var response = await Http.PutAsJsonAsync(driverUrl, updateDriver);
+        if (response.IsSuccessStatusCode)
+        {
+            ClearForm();
+            await LoadDrivers();
+        }
+        else
+        {
+            Console.WriteLine($"Ошибка обновления: {response.StatusCode}");
+        }
+    }
+
+    private async Task ShowUpdForm(int driverId)
+    {
+        flagAdd = false;
+        var response = await Http.GetFromJsonAsync<Driver>($"{driverUrl}/{driverId}");
+        if (response != null)
+        {
+            currentDriver = response;
+        }
+    }
+
+    private void ClearForm()
+    {
+        flagAdd = true;
+        currentDriver = new Driver() { Id = 0, FullName = "", DriverLicense = "", Address = "", Passport = "", PhoneNumber = "" };
+    }
+
+    private async Task HandleFormSubmit()
+    {
+        if (flagAdd)
+        {
+            await AddNewDriver();
+        }
+        else
+        {
+            await UpdateDriver();
+        }
+    }
+}

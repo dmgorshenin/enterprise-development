@@ -1,0 +1,393 @@
+﻿@page "/queries"
+@inject HttpClient Http;
+
+<h2>Queries</h2>
+
+<MudExpansionPanels MultiExpansion="true">
+    <!-- Запрос 1 -->
+    <MudExpansionPanel Text="Запрос 1: Вывести всех водителей, совершивших поездки за заданный период, упорядочить по ФИО.">
+        <div class="input-container">
+            <div class="mb-3">
+                <MudDatePicker id="startDate" Label="Start Date" @bind-Date="_startDate" Editable="true" />
+            </div>
+            <div class="mb-3">
+                <MudTimePicker id="startTime" Label="Start Time" @bind-Time="_startTime" Editable="true" />
+            </div>
+            <div class="mb-3">
+                <MudDatePicker id="endDate" Label="End Date" @bind-Date="_endDate" Editable="true" />
+            </div>
+            <div class="mb-3">
+                <MudTimePicker id="endTime" Label="End Time" @bind-Time="_endTime" Editable="true" />
+            </div>
+        </div>
+        <div class="button-container">
+            <MudButton Color="MudBlazor.Color.Primary" OnClick="@(() => ClickHandler(1))">Get result</MudButton>
+            <MudButton Color="MudBlazor.Color.Error" OnClick="@(() => ClearTask(1))">Clear</MudButton>
+        </div>
+        <div class="table-container">
+            @if (query1 != null && query1.Any())
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Driver License</th>
+                            <th>Passport</th>
+                            <th>Address</th>
+                            <th>Phone Number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var driver in query1)
+                        {
+                            <tr>
+                                <td>@driver.Id</td>
+                                <td>@driver.FullName</td>
+                                <td>@driver.DriverLicense</td>
+                                <td>@driver.Passport</td>
+                                <td>@driver.Address</td>
+                                <td>@driver.PhoneNumber</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="no-data">No data available.</p>
+            }
+        </div>
+    </MudExpansionPanel>
+
+    <!-- Запрос 2 -->
+    <MudExpansionPanel Text="Запрос 2: Вывести топ водителей по количеству поездок.">
+        <div class="button-container">
+            <MudButton Color="MudBlazor.Color.Primary" OnClick="@(() => ClickHandler(2))">Get result</MudButton>
+            <MudButton Color="MudBlazor.Color.Error" OnClick="@(() => ClearTask(2))">Clear</MudButton>
+        </div>
+        <div class="table-container">
+            @if (query2 != null)
+            {
+                <table class="table">
+                <thead>
+                    <tr>
+                        <th>Driver ID</th>
+                        <th>Full Name</th>
+                        <th>Trips</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var driver in query2)
+                    {
+                        <tr>
+                            <td>@driver.Driver.Id</td>
+                            <td>@driver.Driver.FullName</td>
+                            <td>@driver.TripCount</td>
+                        </tr>
+                    }
+                </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="no-data">No data available.</p>
+            }
+        </div>
+    </MudExpansionPanel>
+
+    <!-- Запрос 3 -->
+    <MudExpansionPanel Text="Запрос 3: Вывести информацию по каждому водителю.">
+        <div class="button-container">
+            <MudButton Color="MudBlazor.Color.Primary" OnClick="@(() => ClickHandler(3))">Get result</MudButton>
+            <MudButton Color="MudBlazor.Color.Error" OnClick="@(() => ClearTask(3))">Clear</MudButton>
+        </div>
+        <div class="table-container">
+            @if (query3 != null)
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Driver ID</th>
+                            <th>Full Name</th>
+                            <th>Total Trips</th>
+                            <th>Average Trips Time</th>
+                            <th>Max Trips Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stat in query3)
+                        {
+                            <tr>
+                                <td>@stat.Driver.Id</td>
+                                <td>@stat.Driver.FullName</td>
+                                <td>@stat.TripCount</td>
+                                <td>@stat.AvgTripTime</td>
+                                <td>@stat.MaxTripTime</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="no-data">No data available.</p>
+            }
+        </div>
+    </MudExpansionPanel>
+
+    <!-- Запрос 4 -->
+    <MudExpansionPanel Text="Запрос 4: Вывести суммарное время поездок ТС каждого типа и модели.">
+        <div class="button-container">
+            <MudButton Color="MudBlazor.Color.Primary" OnClick="@(() => ClickHandler(4))">Get result</MudButton>
+            <MudButton Color="MudBlazor.Color.Error" OnClick="@(() => ClearTask(4))">Clear</MudButton>
+        </div>
+        <div class="table-container">
+            @if (query4 != null)
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Model Name</th>
+                            <th>Total Trip Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transport in query4)
+                        {
+                            <tr>
+                                <td>@transport.Type.ToString()</td>
+                                <td>@transport.ModelName</td>
+                                <td>@transport.TotalTripTime</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="no-data">No data available.</p>
+            }
+        </div>
+    </MudExpansionPanel>
+
+    <!-- Запрос 5 -->
+    <MudExpansionPanel Text="Запрос 5: Вывести информацию о ТС, совершивших максимальное количество поездок за указанный период.">
+        <div class="input-container">
+            <div class="mb-3">
+                <MudDatePicker id="startDate" Label="Start Date" @bind-Date="_startDate" Editable="true" />
+            </div>
+            <div class="mb-3">
+                <MudTimePicker id="startTime" Label="Start Time" @bind-Time="_startTime" Editable="true" />
+            </div>
+            <div class="mb-3">
+                <MudDatePicker id="endDate" Label="End Date" @bind-Date="_endDate" Editable="true" />
+            </div>
+            <div class="mb-3">
+                <MudTimePicker id="endTime" Label="End Time" @bind-Time="_endTime" Editable="true" />
+            </div>
+        </div>
+        <div class="button-container">
+            <MudButton Color="MudBlazor.Color.Primary" OnClick="@(() => ClickHandler(5))">Get result</MudButton>
+            <MudButton Color="MudBlazor.Color.Error" OnClick="@(() => ClearTask(5))">Clear</MudButton>
+        </div>
+        <div class="table-container">
+            @if (query5 != null)
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Transport ID</th>
+                            <th>Model Name</th>
+                            <th>Type</th>
+                            <th>Trips</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transport in query5)
+                        {
+                            <tr>
+                                <td>@transport.Transport.Id</td>
+                                <td>@transport.Transport.ModelName</td>
+                                <td>@transport.Transport.Type.ToString()</td>
+                                <td>@transport.TripCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="no-data">No data available.</p>
+            }
+        </div>
+    </MudExpansionPanel>
+
+</MudExpansionPanels>
+
+
+@code{
+    private List<Driver> _drivers = new();
+    private List<Transport> _transports = new();
+    private List<Route> _routes = new();
+    private DateTime? _startDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+    private DateTime? _endDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+    private TimeSpan? _startTime = TimeSpan.Zero;
+    private TimeSpan? _endTime = TimeSpan.Zero;
+
+    private string routeUrl = "api/Routes";
+    private string driverUrl = "api/Drivers";
+    private string transportUrl = "api/Transports";
+
+    private List<Driver> query1 = null!;
+    private List<DriverTripCountDto> query2 = null!;
+    private List<DriverTripStatsDto> query3 = null!;
+    private List<TotalTripTimesDto> query4 = null!;
+    private List<TransportTripCountDto> query5 = null!;
+
+
+    private async Task LoadRoutes()
+    {
+        try
+        {
+            _routes = await Http.GetFromJsonAsync<List<Route>>(routeUrl) ?? new List<Route>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading routes: {ex.Message}");
+        }
+    }
+
+    private async Task LoadTransports()
+    {
+        try
+        {
+            _transports = await Http.GetFromJsonAsync<List<Transport>>(transportUrl) ?? new List<Transport>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading transports: {ex.Message}");
+        }
+    }
+
+    private async Task LoadDrivers()
+    {
+        try
+        {
+            _drivers = await Http.GetFromJsonAsync<List<Driver>>(driverUrl) ?? new List<Driver>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading drivers: {ex.Message}");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDrivers();
+        await LoadTransports();
+        await LoadRoutes();
+    }
+
+    private async Task ClickHandler(int taskId)
+    {
+        switch (taskId)
+        {
+            case 1:
+                if (_startDate.HasValue && _startTime.HasValue && _endDate.HasValue && _endTime.HasValue)
+                {
+                    var timespan = CombineDateTime();
+                    if (timespan.Item1 > timespan.Item2)
+                    {
+                        Console.WriteLine("Start date and time cannot be greater than end date and time.");
+                        return;
+                    }
+                    string startDateTime = Uri.EscapeDataString(timespan.Item1.ToString("o")), endDateTime = Uri.EscapeDataString(timespan.Item2.ToString("o"));
+
+                    var response1 = await Http.GetFromJsonAsync<List<Driver>>("api/Drivers/drivers-in-period?startDate=" + startDateTime + " &endDate=" + endDateTime);
+                    if (response1 != null)
+                    {
+                        query1 = response1;
+                    }
+                }
+                break;
+            case 2:
+                var response2 = await Http.GetFromJsonAsync<List<DriverTripCountDto>>("api/Drivers/top-drivers");
+                if (response2 != null)
+                {
+                    query2 = response2;
+                }
+                break;
+            case 3:
+                var response3 = await Http.GetFromJsonAsync<List<DriverTripStatsDto>>("api/Drivers/driver-trip-stats");
+                if (response3 != null)
+                {
+                    query3 = response3;
+                }
+                break;
+            case 4:
+                var response4 = await Http.GetFromJsonAsync<List<TotalTripTimesDto>>("api/Transports/total-trip-times");
+                if (response4 != null)
+                {
+                    query4 = response4;
+                }
+                break;
+            case 5:
+                if (_startDate.HasValue && _startTime.HasValue && _endDate.HasValue && _endTime.HasValue)
+                {
+                    var timespan = CombineDateTime();
+                    if (timespan.Item1 > timespan.Item2)
+                    {
+                        Console.WriteLine("Start date and time cannot be greater than end date and time.");
+                        return;
+                    }
+                    string startDateTime = Uri.EscapeDataString(timespan.Item1.ToString("o")), endDateTime = Uri.EscapeDataString(timespan.Item2.ToString("o"));
+
+                    var response5 = await Http.GetFromJsonAsync<List<TransportTripCountDto>>("api/Transports/top-transports?startDate=" + startDateTime + " &endDate=" + endDateTime);
+                    if (response5 != null)
+                    {
+                        query5 = response5;
+                    }
+                }
+                break;
+        }
+    }
+
+    private void ClearTask(int taskId)
+    {
+        switch (taskId)
+        {
+            case 1:
+                query1 = null!;
+                break;
+            case 2:
+                query2 = null!;
+                break;
+            case 3:
+                query3 = null!;
+                break;
+            case 4:
+                query4 = null!;
+                break;
+            case 5:
+                query5 = null!;
+                break;
+        }
+    }
+
+    private Tuple<DateTime, DateTime> CombineDateTime()
+    {
+        DateTime start = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+        DateTime end = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+        if (_startDate.HasValue && _startTime.HasValue)
+        {
+            start = _startDate.Value.Date + _startTime.Value;
+        }
+        if (_endDate.HasValue && _endTime.HasValue)
+        {
+            end = _endDate.Value.Date + _endTime.Value;
+        }
+        return new Tuple<DateTime, DateTime>(start, end);
+    }
+}
