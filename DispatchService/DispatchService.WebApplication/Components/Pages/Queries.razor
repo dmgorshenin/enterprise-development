@@ -1,11 +1,12 @@
 ﻿@page "/queries"
-@inject HttpClient Http;
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
 <h2>Queries</h2>
 
 <MudExpansionPanels MultiExpansion="true">
-    <!-- Запрос 1 -->
-    <MudExpansionPanel Text="Запрос 1: Вывести всех водителей, совершивших поездки за заданный период, упорядочить по ФИО.">
+    <!-- Query 1 -->
+    <MudExpansionPanel Text="Query 1: Display all drivers who made trips during a given period, sorted by full name.">
         <div class="input-container">
             <div class="mb-3">
                 <MudDatePicker id="startDate" Label="Start Date" @bind-Date="_startDate" Editable="true" />
@@ -60,8 +61,8 @@
         </div>
     </MudExpansionPanel>
 
-    <!-- Запрос 2 -->
-    <MudExpansionPanel Text="Запрос 2: Вывести топ водителей по количеству поездок.">
+    <!-- Query 2 -->
+    <MudExpansionPanel Text="Query 2: Display the top drivers by number of trips.">
         <div class="button-container">
             <MudButton Color="MudBlazor.Color.Primary" OnClick="@(() => ClickHandler(2))">Get result</MudButton>
             <MudButton Color="MudBlazor.Color.Error" OnClick="@(() => ClearTask(2))">Clear</MudButton>
@@ -81,8 +82,8 @@
                     @foreach (var driver in query2)
                     {
                         <tr>
-                            <td>@driver.Driver.Id</td>
-                            <td>@driver.Driver.FullName</td>
+                            <td>@(driver.Driver?.Id.ToString() ?? "N/A")</td>
+                            <td>@(driver.Driver?.FullName ?? "N/A")</td>
                             <td>@driver.TripCount</td>
                         </tr>
                     }
@@ -96,8 +97,8 @@
         </div>
     </MudExpansionPanel>
 
-    <!-- Запрос 3 -->
-    <MudExpansionPanel Text="Запрос 3: Вывести информацию по каждому водителю.">
+    <!-- Query 3 -->
+    <MudExpansionPanel Text="Query 3: Display information for each driver.">
         <div class="button-container">
             <MudButton Color="MudBlazor.Color.Primary" OnClick="@(() => ClickHandler(3))">Get result</MudButton>
             <MudButton Color="MudBlazor.Color.Error" OnClick="@(() => ClearTask(3))">Clear</MudButton>
@@ -119,8 +120,8 @@
                         @foreach (var stat in query3)
                         {
                             <tr>
-                                <td>@stat.Driver.Id</td>
-                                <td>@stat.Driver.FullName</td>
+                                <td>@(stat.Driver?.Id.ToString() ?? "N/A")</td>
+                                <td>@(stat.Driver?.FullName ?? "N/A")</td>
                                 <td>@stat.TripCount</td>
                                 <td>@stat.AvgTripTime</td>
                                 <td>@stat.MaxTripTime</td>
@@ -136,8 +137,8 @@
         </div>
     </MudExpansionPanel>
 
-    <!-- Запрос 4 -->
-    <MudExpansionPanel Text="Запрос 4: Вывести суммарное время поездок ТС каждого типа и модели.">
+    <!-- Query 4 -->
+    <MudExpansionPanel Text="Query 4: Display the total travel time of vehicles of each type and model.">
         <div class="button-container">
             <MudButton Color="MudBlazor.Color.Primary" OnClick="@(() => ClickHandler(4))">Get result</MudButton>
             <MudButton Color="MudBlazor.Color.Error" OnClick="@(() => ClearTask(4))">Clear</MudButton>
@@ -172,8 +173,8 @@
         </div>
     </MudExpansionPanel>
 
-    <!-- Запрос 5 -->
-    <MudExpansionPanel Text="Запрос 5: Вывести информацию о ТС, совершивших максимальное количество поездок за указанный период.">
+    <!-- Query 5 -->
+    <MudExpansionPanel Text="Query 5: Display information about the vehicles that have made the maximum number of trips during the specified period.">
         <div class="input-container">
             <div class="mb-3">
                 <MudDatePicker id="startDate" Label="Start Date" @bind-Date="_startDate" Editable="true" />
@@ -208,9 +209,9 @@
                         @foreach (var transport in query5)
                         {
                             <tr>
-                                <td>@transport.Transport.Id</td>
-                                <td>@transport.Transport.ModelName</td>
-                                <td>@transport.Transport.Type.ToString()</td>
+                                <td>@(transport.Transport?.Id.ToString() ?? "N/A")</td>
+                                <td>@(transport.Transport?.ModelName ?? "N/A")</td>
+                                <td>@(transport.Transport?.Type.ToString() ?? "N/A")</td>
                                 <td>@transport.TripCount</td>
                             </tr>
                         }
@@ -255,7 +256,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading routes: {ex.Message}");
+            Snackbar.Add($"Error loading routes: {ex.Message}", Severity.Error);
         }
     }
 
@@ -267,7 +268,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading transports: {ex.Message}");
+            Snackbar.Add($"Error loading transports: {ex.Message}", Severity.Error);
         }
     }
 
@@ -279,7 +280,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading drivers: {ex.Message}");
+            Snackbar.Add($"Error loading drivers: {ex.Message}", Severity.Error);
         }
     }
 
@@ -292,65 +293,72 @@
 
     private async Task ClickHandler(int taskId)
     {
-        switch (taskId)
+        try
         {
-            case 1:
-                if (_startDate.HasValue && _startTime.HasValue && _endDate.HasValue && _endTime.HasValue)
-                {
-                    var timespan = CombineDateTime();
-                    if (timespan.Item1 > timespan.Item2)
+            switch (taskId)
+            {
+                case 1:
+                    if (_startDate.HasValue && _startTime.HasValue && _endDate.HasValue && _endTime.HasValue)
                     {
-                        Console.WriteLine("Start date and time cannot be greater than end date and time.");
-                        return;
-                    }
-                    string startDateTime = Uri.EscapeDataString(timespan.Item1.ToString("o")), endDateTime = Uri.EscapeDataString(timespan.Item2.ToString("o"));
+                        var timespan = CombineDateTime();
+                        if (timespan == null || timespan.Item1 > timespan.Item2)
+                        {
+                            Console.WriteLine("Start date and time cannot be greater than end date and time.");
+                            return;
+                        }
+                        string startDateTime = Uri.EscapeDataString(timespan.Item1.ToString("o")), endDateTime = Uri.EscapeDataString(timespan.Item2.ToString("o"));
 
-                    var response1 = await Http.GetFromJsonAsync<List<Driver>>("api/Drivers/drivers-in-period?startDate=" + startDateTime + " &endDate=" + endDateTime);
-                    if (response1 != null)
-                    {
-                        query1 = response1;
+                        var response1 = await Http.GetFromJsonAsync<List<Driver>>("api/Drivers/drivers-in-period?startDate=" + startDateTime + " &endDate=" + endDateTime);
+                        if (response1 != null)
+                        {
+                            query1 = response1;
+                        }
                     }
-                }
-                break;
-            case 2:
-                var response2 = await Http.GetFromJsonAsync<List<DriverTripCountDto>>("api/Drivers/top-drivers");
-                if (response2 != null)
-                {
-                    query2 = response2;
-                }
-                break;
-            case 3:
-                var response3 = await Http.GetFromJsonAsync<List<DriverTripStatsDto>>("api/Drivers/driver-trip-stats");
-                if (response3 != null)
-                {
-                    query3 = response3;
-                }
-                break;
-            case 4:
-                var response4 = await Http.GetFromJsonAsync<List<TotalTripTimesDto>>("api/Transports/total-trip-times");
-                if (response4 != null)
-                {
-                    query4 = response4;
-                }
-                break;
-            case 5:
-                if (_startDate.HasValue && _startTime.HasValue && _endDate.HasValue && _endTime.HasValue)
-                {
-                    var timespan = CombineDateTime();
-                    if (timespan.Item1 > timespan.Item2)
+                    break;
+                case 2:
+                    var response2 = await Http.GetFromJsonAsync<List<DriverTripCountDto>>("api/Drivers/top-drivers");
+                    if (response2 != null)
                     {
-                        Console.WriteLine("Start date and time cannot be greater than end date and time.");
-                        return;
+                        query2 = response2;
                     }
-                    string startDateTime = Uri.EscapeDataString(timespan.Item1.ToString("o")), endDateTime = Uri.EscapeDataString(timespan.Item2.ToString("o"));
+                    break;
+                case 3:
+                    var response3 = await Http.GetFromJsonAsync<List<DriverTripStatsDto>>("api/Drivers/driver-trip-stats");
+                    if (response3 != null)
+                    {
+                        query3 = response3;
+                    }
+                    break;
+                case 4:
+                    var response4 = await Http.GetFromJsonAsync<List<TotalTripTimesDto>>("api/Transports/total-trip-times");
+                    if (response4 != null)
+                    {
+                        query4 = response4;
+                    }
+                    break;
+                case 5:
+                    if (_startDate.HasValue && _startTime.HasValue && _endDate.HasValue && _endTime.HasValue)
+                    {
+                        var timespan = CombineDateTime();
+                        if (timespan == null || timespan.Item1 > timespan.Item2)
+                        {
+                            Console.WriteLine("Start date and time cannot be greater than end date and time.");
+                            return;
+                        }
+                        string startDateTime = Uri.EscapeDataString(timespan.Item1.ToString("o")), endDateTime = Uri.EscapeDataString(timespan.Item2.ToString("o"));
 
-                    var response5 = await Http.GetFromJsonAsync<List<TransportTripCountDto>>("api/Transports/top-transports?startDate=" + startDateTime + " &endDate=" + endDateTime);
-                    if (response5 != null)
-                    {
-                        query5 = response5;
+                        var response5 = await Http.GetFromJsonAsync<List<TransportTripCountDto>>("api/Transports/top-transports?startDate=" + startDateTime + " &endDate=" + endDateTime);
+                        if (response5 != null)
+                        {
+                            query5 = response5;
+                        }
                     }
-                }
-                break;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
 
@@ -376,18 +384,32 @@
         }
     }
 
-    private Tuple<DateTime, DateTime> CombineDateTime()
+    private Tuple<DateTime, DateTime>? CombineDateTime()
     {
-        DateTime start = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
-        DateTime end = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
-        if (_startDate.HasValue && _startTime.HasValue)
+        try
         {
-            start = _startDate.Value.Date + _startTime.Value;
+            if (_startDate > _endDate || _startTime > _endTime)
+            {
+                throw new Exception("Error Date");
+            }
+            DateTime start = DateTime.UtcNow, end = DateTime.UtcNow;
+
+            if (_startDate.HasValue && _startTime.HasValue)
+            {
+                start = _startDate.Value.Date + _startTime.Value;
+                start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+            }
+            if (_endDate.HasValue && _endTime.HasValue)
+            {
+                end = _endDate.Value.Date + _endTime.Value;
+                end = DateTime.SpecifyKind(end, DateTimeKind.Utc);
+            }
+            return new Tuple<DateTime, DateTime>(start, end);
         }
-        if (_endDate.HasValue && _endTime.HasValue)
+        catch (Exception ex)
         {
-            end = _endDate.Value.Date + _endTime.Value;
+            Snackbar.Add($"{ex.Message}: Start date is later than end date", Severity.Error);
+            return null;
         }
-        return new Tuple<DateTime, DateTime>(start, end);
     }
 }

@@ -1,5 +1,6 @@
 ﻿@page "/transports"
 @inject HttpClient Http;
+@inject ISnackbar Snackbar
 
 <PageTitle>Transports</PageTitle>
 
@@ -105,54 +106,88 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading transports: {ex.Message}");
+            Snackbar.Add($"Error loading transports: {ex.Message}", Severity.Error);
         }
     }
 
     private async Task AddNewTransport()
     {
-        await Http.PostAsJsonAsync(transportUrl, currentTransport);
-        ClearForm();
-        await LoadTransports();
+        try
+        {
+            var response = await Http.PostAsJsonAsync(transportUrl, currentTransport);
+            if (response.IsSuccessStatusCode)
+            {
+                ClearForm();
+                await LoadTransports();
+            }
+            else
+            {
+                Snackbar.Add($"Failed to add transport: {response.StatusCode}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding transport: {ex.Message}", Severity.Error);
+        }
     }
 
     private async Task DeleteTransport(int transportId)
     {
-        await Http.DeleteAsync($"{transportUrl}/{transportId}");
-        await LoadTransports();
-
-        var routes = await Http.GetFromJsonAsync<List<Route>>(routeUrl);
-        if (routes != null)
+        try
         {
-            routes = routes.Select(d => d).Where(d => d.AssignedTransport.Id == transportId).ToList();
-            foreach (var route in routes)
+            var response = await Http.DeleteAsync($"{transportUrl}/{transportId}");
+            if (response.IsSuccessStatusCode)
             {
-                await Http.DeleteAsync($"api/Routes/{route.Id}");
+                await LoadTransports();
+                var routes = await Http.GetFromJsonAsync<List<Route>>(routeUrl);
+                if (routes != null)
+                {
+                    routes = routes.Where(d => d.AssignedTransport.Id == transportId).ToList();
+                    foreach (var route in routes)
+                    {
+                        await Http.DeleteAsync($"api/Routes/{route.Id}");
+                    }
+                }
             }
+            else
+            {
+                Snackbar.Add($"Failed to delete transport: {response.StatusCode}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error deleting transport: {ex.Message}", Severity.Error);
         }
     }
 
     private async Task UpdateTransport()
     {
-        var updateTransport = new TransportUpdateDto
+        try
+        {
+            var updateTransport = new TransportUpdateDto
+                {
+                    TransportId = currentTransport.Id,
+                    LicensePlate = currentTransport.LicensePlate,
+                    ModelName = currentTransport.ModelName,
+                    IsLowFloor = currentTransport.IsLowFloor,
+                    YearOfManufacture = currentTransport.YearOfManufacture,
+                    Type = currentTransport.Type,
+                    MaxCapacity = currentTransport.MaxCapacity
+                };
+            var response = await Http.PutAsJsonAsync(transportUrl, updateTransport);
+            if (response.IsSuccessStatusCode)
             {
-                TransportId = currentTransport.Id,
-                LicensePlate = currentTransport.LicensePlate,
-                ModelName = currentTransport.ModelName,
-                IsLowFloor = currentTransport.IsLowFloor,
-                YearOfManufacture = currentTransport.YearOfManufacture,
-                Type = currentTransport.Type,
-                MaxCapacity = currentTransport.MaxCapacity
-            };
-        var response = await Http.PutAsJsonAsync(transportUrl, updateTransport);
-        if (response.IsSuccessStatusCode)
-        {
-            ClearForm();
-            await LoadTransports();
+                ClearForm();
+                await LoadTransports();
+            }
+            else
+            {
+                Snackbar.Add($"Failed to update transport: {response.StatusCode}", Severity.Error);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка обновления: {response.StatusCode}");
+            Snackbar.Add($"Error updating transport: {ex.Message}", Severity.Error);
         }
     }
 

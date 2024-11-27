@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject HttpClient Http
+@inject ISnackbar Snackbar
 
 <PageTitle>Drivers</PageTitle>
 
@@ -94,52 +95,87 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading drivers: {ex.Message}");
+            Snackbar.Add($"Error loading drivers: {ex.Message}", Severity.Error);
         }
     }
 
     private async Task AddNewDriver()
     {
-        await Http.PostAsJsonAsync(driverUrl, currentDriver);
-        ClearForm();
-        await LoadDrivers();
+        try
+        {
+            var response = await Http.PostAsJsonAsync(driverUrl, currentDriver);
+            if (response.IsSuccessStatusCode)
+            {
+                ClearForm();
+                await LoadDrivers();
+            }
+            else
+            {
+                Snackbar.Add($"Failed to add driver: {response.StatusCode}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding driver: {ex.Message}", Severity.Error);
+        }
     }
 
     private async Task DeleteDriver(int driverId)
     {
-        await Http.DeleteAsync($"{driverUrl}/{driverId}");
-        await LoadDrivers();
-
-        var routes = await Http.GetFromJsonAsync<List<Route>>(routeUrl);
-        if (routes != null)
+        try
         {
-            routes = routes.Select(d => d).Where(d => d.AssignedDriver.Id == driverId).ToList();
-            foreach (var route in routes)
+            var response = await Http.DeleteAsync($"{driverUrl}/{driverId}");
+            if (response.IsSuccessStatusCode)
             {
-                await Http.DeleteAsync($"api/Routes/{route.Id}");
+                await LoadDrivers();
+                var routes = await Http.GetFromJsonAsync<List<Route>>(routeUrl);
+                if (routes != null)
+                {
+                    routes = routes.Where(d => d.AssignedDriver.Id == driverId).ToList();
+                    foreach (var route in routes)
+                    {
+                        await Http.DeleteAsync($"api/Routes/{route.Id}");
+                    }
+                }
             }
+            else
+            {
+                Snackbar.Add($"Failed to delete driver: {response.StatusCode}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error deleting driver: {ex.Message}", Severity.Error);
         }
     }
 
     private async Task UpdateDriver()
     {
-        var updateDriver = new DriverUpdateDto {
-            DriverId = currentDriver.Id, 
-            Address = currentDriver.Address, 
-            DriverLicense = currentDriver.DriverLicense, 
-            FullName = currentDriver.FullName, 
-            Passport = currentDriver.Passport, 
-            PhoneNumber = currentDriver.PhoneNumber 
-        };
-        var response = await Http.PutAsJsonAsync(driverUrl, updateDriver);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            ClearForm();
-            await LoadDrivers();
+            var updateDriver = new DriverUpdateDto
+                {
+                    DriverId = currentDriver.Id,
+                    Address = currentDriver.Address,
+                    DriverLicense = currentDriver.DriverLicense,
+                    FullName = currentDriver.FullName,
+                    Passport = currentDriver.Passport,
+                    PhoneNumber = currentDriver.PhoneNumber
+                };
+            var response = await Http.PutAsJsonAsync(driverUrl, updateDriver);
+            if (response.IsSuccessStatusCode)
+            {
+                ClearForm();
+                await LoadDrivers();
+            }
+            else
+            {
+                Snackbar.Add($"Failed to update driver: {response.StatusCode}", Severity.Error);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка обновления: {response.StatusCode}");
+            Snackbar.Add($"Error updating driver: {ex.Message}", Severity.Error);
         }
     }
 

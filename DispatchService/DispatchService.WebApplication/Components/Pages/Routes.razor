@@ -1,5 +1,6 @@
 ﻿@page "/routes"
-@inject HttpClient Http;
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
 <PageTitle>Routes</PageTitle>
 
@@ -55,21 +56,33 @@
     </div>
     <div class="mb-3">
         <label for="assignedTransport" class="form-label">Assigned Transport</label>
-        <InputSelect id="assignedTransport" class="form-control" @bind-Value="currentRoute.AssignedTransport.Id">
+        <InputSelect id="assignedTransport" class="form-control" Value="currentRoute.AssignedTransport.Id" ValueChanged="@(EventCallback.Factory.Create<int>(this, id => OnTransportChanged(id)))" ValueExpression="(() => currentRoute.AssignedTransport.Id)">
             @foreach (var transport in _transports)
             {
                 <option value="@transport.Id">@transport.ModelName (@transport.LicensePlate)</option>
             }
         </InputSelect>
+        @* <InputSelect id="assignedTransport" class="form-control" @bind-Value="currentRoute.AssignedTransport.Id">
+            @foreach (var transport in _transports)
+            {
+                <option value="@transport.Id">@transport.ModelName (@transport.LicensePlate)</option>
+            }
+        </InputSelect> *@
     </div>
     <div class="mb-3">
         <label for="assignedDriver" class="form-label">Assigned Driver</label>
-        <InputSelect id="assignedDriver" class="form-control" @bind-Value="currentRoute.AssignedDriver.Id">
+        <InputSelect id="assignedDriver" class="form-control" Value="currentRoute.AssignedDriver.Id" ValueChanged="@(EventCallback.Factory.Create<int>(this, id => OnDriverChanged(id)))" ValueExpression="(() => currentRoute.AssignedDriver.Id)">
             @foreach (var driver in _drivers)
             {
                 <option value="@driver.Id">@driver.FullName (@driver.PhoneNumber)</option>
             }
         </InputSelect>
+        @* <InputSelect id="assignedDriver" class="form-control" @bind-Value="currentRoute.AssignedDriver.Id">
+            @foreach (var driver in _drivers)
+            {
+                <option value="@driver.Id">@driver.FullName (@driver.PhoneNumber)</option>
+            }
+        </InputSelect> *@
     </div>
 	<div class="mb-3">
         <MudDatePicker id="startDate" class="form-control" PickerVariant="PickerVariant.Dialog" Label="Start Date" @bind-Date="_startDate" Editable="true" />
@@ -114,6 +127,7 @@
         await LoadRoutes();
         await LoadTransports();
         await LoadDrivers();
+        ClearForm();
     }
 
     private async Task LoadRoutes()
@@ -124,7 +138,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading routes: {ex.Message}");
+            Snackbar.Add($"Error loading routes: {ex.Message}", Severity.Error);
         }
     }
 
@@ -136,7 +150,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading transports: {ex.Message}");
+            Snackbar.Add($"Error loading transports: {ex.Message}", Severity.Error);
         }
     }
 
@@ -148,53 +162,68 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading drivers: {ex.Message}");
+            Snackbar.Add($"Error loading drivers: {ex.Message}", Severity.Error);
         }
     }
 
     private async Task AddNewRoute()
     {
-        var createRoute = new RouteCreateDto
+        try
+        {
+            var createRoute = new RouteCreateDto
+                {
+                    RouteNumber = currentRoute.RouteNumber,
+                    AssignedDriverId = currentRoute.AssignedDriver.Id,
+                    AssignedTransportId = currentRoute.AssignedTransport.Id,
+                    StartTime = currentRoute.StartTime,
+                    EndTime = currentRoute.EndTime
+                };
+            var response = await Http.PostAsJsonAsync(routeUrl, createRoute);
+            if (response.IsSuccessStatusCode)
             {
-                RouteNumber = currentRoute.RouteNumber,
-                AssignedDriverId = currentRoute.AssignedDriver.Id,
-                AssignedTransportId = currentRoute.AssignedTransport.Id,
-                StartTime = currentRoute.StartTime,
-                EndTime = currentRoute.EndTime
-            };
-        var response = await Http.PostAsJsonAsync(routeUrl, createRoute);
-        if (response.IsSuccessStatusCode)
-        {
-            ClearForm();
-            await LoadRoutes();
+                ClearForm();
+                await LoadRoutes();
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Failed to add route: {response.StatusCode}, Details: {errorContent}", Severity.Error);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Error creating route: {response.StatusCode}, Details: {errorContent}");
+            Snackbar.Add($"Error adding route: {ex.Message}", Severity.Error);
         }
+
     }
 
     private async Task UpdateRoute()
     {
-        var updateRoute = new RouteUpdateDto
+        try
         {
-            RouteId = currentRoute.Id,
-            RouteNumber = currentRoute.RouteNumber,
-            AssignedDriverId = currentRoute.AssignedDriver.Id,
-            AssignedTransportId = currentRoute.AssignedTransport.Id,
-            StartTime = currentRoute.StartTime,
-            EndTime = currentRoute.EndTime
-        };
-        var response = await Http.PutAsJsonAsync(routeUrl, updateRoute);
-        if (response.IsSuccessStatusCode)
-        {
-            ClearForm();
-            await LoadRoutes();
+            var updateRoute = new RouteUpdateDto
+                {
+                    RouteId = currentRoute.Id,
+                    RouteNumber = currentRoute.RouteNumber,
+                    AssignedDriverId = currentRoute.AssignedDriver.Id,
+                    AssignedTransportId = currentRoute.AssignedTransport.Id,
+                    StartTime = currentRoute.StartTime,
+                    EndTime = currentRoute.EndTime
+                };
+            var response = await Http.PutAsJsonAsync(routeUrl, updateRoute);
+            if (response.IsSuccessStatusCode)
+            {
+                ClearForm();
+                await LoadRoutes();
+            }
+            else
+            {
+                Snackbar.Add($"Failed to update route: {response.StatusCode}", Severity.Error);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine($"Error updating route: {response.StatusCode}");
+            Snackbar.Add($"Error updating route: {ex.Message}", Severity.Error);
         }
     }
 
@@ -236,6 +265,24 @@
         _startTime = TimeSpan.Zero;
     }
 
+    private void OnTransportChanged(int selectedTransportId)
+    {
+        var response = _transports.FirstOrDefault(t => t.Id == selectedTransportId);
+        if (response != null)
+        {
+            currentRoute.AssignedTransport = response;
+        }
+    }
+
+    private void OnDriverChanged(int selectedDriverId)
+    {
+        var response = _drivers.FirstOrDefault(d => d.Id == selectedDriverId);
+        if (response != null)
+        {
+            currentRoute.AssignedDriver = response;
+        }
+    }
+
     private async Task HandleFormSubmit()
     {
         CombineDateTime();
@@ -251,13 +298,26 @@
 
     private void CombineDateTime()
     {
-        if (_startDate.HasValue && _startTime.HasValue)
+        try
         {
-            currentRoute.StartTime = _startDate.Value.Date + _startTime.Value;
+            if (_startDate > _endDate || _startTime > _endTime)
+            {
+                throw new Exception("Error Date");
+            }
+            if (_startDate.HasValue && _startTime.HasValue)
+            {
+                currentRoute.StartTime = _startDate.Value.Date + _startTime.Value;
+                currentRoute.StartTime = DateTime.SpecifyKind(currentRoute.StartTime, DateTimeKind.Utc);
+            }
+            if (_endDate.HasValue && _endTime.HasValue)
+            {
+                currentRoute.EndTime = _endDate.Value.Date + _endTime.Value;
+                currentRoute.EndTime = DateTime.SpecifyKind(currentRoute.EndTime, DateTimeKind.Utc);
+            }
         }
-        if (_endDate.HasValue && _endTime.HasValue)
+        catch (Exception ex)
         {
-            currentRoute.EndTime = _endDate.Value.Date + _endTime.Value;
+            Snackbar.Add($"{ex.Message}: Start date is later than end date", Severity.Error);
         }
     }
 }

@@ -2,6 +2,7 @@ using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using DispatchService.WebApplication.Components;
+using MudBlazor;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,18 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMudServices();
+//builder.Services.AddMudServices(config =>
+//{
+//    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+
+//    config.SnackbarConfiguration.PreventDuplicates = false;
+//    config.SnackbarConfiguration.NewestOnTop = false;
+//    config.SnackbarConfiguration.ShowCloseIcon = true;
+//    config.SnackbarConfiguration.VisibleStateDuration = 10000;
+//    config.SnackbarConfiguration.HideTransitionDuration = 500;
+//    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+//    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+//});
 
 builder.Services
     .AddBlazorise(options =>
@@ -32,6 +45,7 @@ builder.Services
     .AddFontAwesomeIcons();
 
 var app = builder.Build();
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 if (!app.Environment.IsDevelopment())
 {
